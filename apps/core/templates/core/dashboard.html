@@ -5,13 +5,13 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-[30px] leading-9 font-bold tracking-[-0.75px] dark:text-white">Dashboard</h1>
-      <p class="text-gray-500 mt-2 dark:text-gray-400">Welcome back! Here's an overview of your hiring activities.</p>
+      <h1 class="text-gray-900 text-[30px] leading-9 font-bold tracking-[-0.75px] dark:text-white">Dashboard</h1>
+      <p class="text-gray-500 mt-2 dark:text-gray-400">Welcome back! Here's an overview of your emergency response activities.</p>
     </div>
-    <a href="{% url 'jobs:job_create' %}">
+    <a href="/">
       <button class="inline-flex items-center gap-2 min-h-9 px-4 py-2 rounded-md text-white bg-[color:var(--brand,#EE7C2B)] border border-[color:var(--brand,#EE7C2B)]" style="--brand:#EE7C2B">
         <i class="fa-solid fa-plus text-xs"></i>
-        Create Job
+        New Request
       </button>
     </a>
   </div>
@@ -19,83 +19,435 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Jobs</div>
-        <i class="fa-solid fa-briefcase text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Requests</div>
+        <i class="fa-regular fa-file-lines text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ active_jobs_count }}</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ total_requests }}</div>
       <p class="text-xs {% if jobs_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if jobs_percentage_change >= 0 %}+{% endif %}{{ jobs_percentage_change }}% from last month
       </p>
     </div>
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Resumes</div>
-        <i class="fa-regular fa-file-lines text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Cases</div>
+        <i class="bi bi-activity text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ total_resumes_count }}</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ active_cases }}</div>
       <p class="text-xs {% if resumes_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if resumes_percentage_change >= 0 %}+{% endif %}{{ resumes_percentage_change }}% from last month
       </p>
     </div>
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Applications</div>
-        <i class="fa-solid fa-users text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Resolved Today</div>
+        <i class="bi bi-check-circle text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ applications_count }}</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ resolved_today }}</div>
       <p class="text-xs {% if applications_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if applications_percentage_change >= 0 %}+{% endif %}{{ applications_percentage_change }}% from last month
       </p>
     </div>
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Match Rate</div>
-        <i class="fa-solid fa-square-check text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Response Time</div>
+        <i class="bi bi-alarm text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ match_rate }}%</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ avg_response_time_minutes }}m</div>
       <p class="text-xs {% if match_rate_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if match_rate_percentage_change >= 0 %}+{% endif %}{{ match_rate_percentage_change }}% from last month
       </p>
     </div>
   </div>
 
+  {% comment %} Recent Requests table {% endcomment %}
+  <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Recent Requests</h2>
+        <div class="flex space-x-3">
+            <button class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="bi bi-funnel"></i>
+                <span>Filter</span>
+            </button>
+            <button class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+                <span>Search</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        CASE / USER
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        REQUEST DETAILS
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        PRIORITY
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        STATUS
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        CREATED
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ACTIONS
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for request in recent_requests %}
+                <tr class="cursor-pointer hover:bg-gray-50 transition duration-150" onclick="openModal('{{ request.case_code }}')">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 text-xl flex items-center justify-center rounded-full
+                                {% if request.urgency_level == 'CRITICAL' %}bg-red-100 text-red-600
+                                {% elif request.urgency_level == 'HIGH' %}bg-orange-100 text-orange-600
+                                {% elif request.urgency_level == 'MEDIUM' %}bg-yellow-100 text-yellow-600
+                                {% else %}bg-gray-100 text-gray-600{% endif %} mr-3">
+                                {% if request.category == 'HEALTH' %}🏥
+                                {% elif request.category == 'POLICE' %}🚓
+                                {% elif request.category == 'FIRE' %}🚒
+                                {% elif request.category == 'GOVERNMENT' %}🏛️
+                                {% else %}📋{% endif %}
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ request.case_code }}</div>
+                                <div class="text-sm text-gray-500">{{ request.user.get_full_name|default:request.user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">{{ request.request_text|truncatewords:10 }}</div>
+                        {% if request.target_location %}
+                        <div class="text-xs text-gray-500 flex items-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>{{ request.target_location.area|default:"" }} {{ request.target_location.city.name }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if request.urgency_level == 'CRITICAL' %}bg-red-100 text-red-800
+                            {% elif request.urgency_level == 'HIGH' %}bg-orange-100 text-orange-800
+                            {% elif request.urgency_level == 'MEDIUM' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ request.urgency_level|default:"LOW" }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            {% if request.status == 'RESOLVED' %}bg-green-100 text-green-800
+                            {% elif request.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800
+                            {% elif request.status == 'ASSIGNED' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ request.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ request.created_at|date:"Y-m-d H:i" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-gray-200 z-10"
+                                onclick="event.stopPropagation(); openModal('{{ request.case_code }}');">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        No recent requests found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% comment %} script for opening and closing modal of Recent Requests {% endcomment %}
+<script>
+    function openModal(caseCode) {
+        console.log('Opening modal for Case ID:', caseCode);
+
+        // Show loading state
+        document.getElementById('modal-user-name').textContent = 'Loading...';
+        document.getElementById('modal-user-location').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>Loading location...</span>';
+        document.getElementById('modal-request-text').textContent = 'Loading request details...';
+        document.getElementById('modal-assignment').textContent = 'Loading assignment...';
+        document.getElementById('modal-assignment-status').textContent = 'Loading...';
+        document.getElementById('modal-timeline').innerHTML = '<li class="flex items-center space-x-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>Created: Loading...</span></li>';
+        document.getElementById('modal-recent-actions').innerHTML = '<li class="flex justify-between items-center text-sm text-gray-800"><span class="flex items-center space-x-2"><span class="h-2 w-2 bg-gray-300 rounded-full"></span><span>Loading actions...</span></span><span class="text-xs text-gray-500">Loading...</span></li>';
+
+        // Fetch request details via AJAX
+        fetch(`/dashboard/request-detail/?case_code=${caseCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    populateModal(data);
+                } else {
+                    showError('Request not found');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching request details:', error);
+                showError('Error loading request details');
+            });
+
+        // Show modal
+        document.getElementById('modal-request-details').classList.remove('hidden');
+        document.getElementById('modal-case-id').textContent = caseCode;
+    }
+
+    function populateModal(data) {
+        const request = data.request;
+        const location = data.location;
+        const assignment = data.assignment;
+        const recentActions = data.recent_actions;
+
+        // Populate user information
+        document.getElementById('modal-user-name').textContent = request.user_name;
+        document.getElementById('modal-user-location').innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+            </svg>
+            <span>${location.area} ${location.city}</span>
+        `;
+
+        // Populate request details
+        document.getElementById('modal-request-text').textContent = request.request_text;
+        document.getElementById('modal-request-tags').innerHTML = `
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                ${getPriorityClass(request.urgency_level)}">
+                ${request.urgency_level}
+            </span>
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                ${request.category}
+            </span>
+        `;
+
+        // Populate assignment
+        document.getElementById('modal-assignment').textContent =
+            `${assignment.department}${assignment.entity !== 'Not assigned' ? ' - ' + assignment.entity : ''}`;
+        document.getElementById('modal-assignment-status').textContent = assignment.status;
+        document.getElementById('modal-assignment-status').className =
+            `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(assignment.status)}`;
+
+        // Populate timeline
+        document.getElementById('modal-timeline').innerHTML = `
+            <li class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Created: ${request.created_at}</span>
+            </li>
+            <li class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <span>Assigned: ${request.assigned_at}</span>
+            </li>
+        `;
+
+        // Populate recent actions
+        const actionsHtml = recentActions.map(action => `
+            <li class="flex justify-between items-center text-sm text-gray-800">
+                <span class="flex items-center space-x-2">
+                    <span class="h-2 w-2 ${action.success ? 'bg-green-500' : 'bg-red-500'} rounded-full"></span>
+                    <span>${action.description}</span>
+                </span>
+                <span class="text-xs text-gray-500">${action.created_at}</span>
+            </li>
+        `).join('');
+
+        document.getElementById('modal-recent-actions').innerHTML =
+            actionsHtml || '<li class="text-sm text-gray-500 text-center">No actions recorded</li>';
+    }
+
+    function getPriorityClass(urgency) {
+        switch(urgency) {
+            case 'CRITICAL': return 'bg-red-100 text-red-800';
+            case 'HIGH': return 'bg-orange-100 text-orange-800';
+            case 'MEDIUM': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 'RESOLVED': return 'bg-green-100 text-green-800';
+            case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800';
+            case 'ASSIGNED': return 'bg-yellow-100 text-yellow-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
+
+    function showError(message) {
+        document.getElementById('modal-request-text').textContent = message;
+        document.getElementById('modal-request-text').className = 'text-lg font-medium text-red-600 mb-2';
+    }
+
+    function closeModal() {
+        document.getElementById('modal-request-details').classList.add('hidden');
+    }
+
+    // Close modal when clicking outside or pressing Escape
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('modal-request-details');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
+
+{% comment %} modal for Recent Requests details {% endcomment %}
+<div id="modal-request-details" class="fixed inset-0 z-50 overflow-y-auto bg-gray-600 bg-opacity-50 hidden transition-opacity" onclick="closeModal()">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex justify-between items-start border-b border-gray-200 pb-4 mb-4">
+                    <h3 class="text-xl font-semibold text-gray-900" id="modal-headline">
+                        Request Details - <span id="modal-case-id">C-A812CD34</span>
+                    </h3>
+                    <button type="button" class="text-gray-400 hover:text-gray-600 transition" onclick="closeModal()">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">User Information</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <p class="text-lg font-medium text-gray-900" id="modal-user-name">Loading...</p>
+                                <div class="text-sm text-gray-500 flex items-center mt-1" id="modal-user-location">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Loading location...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Request Details</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <p class="text-lg font-medium text-gray-900 mb-2" id="modal-request-text">Loading request details...</p>
+                                <div class="flex space-x-2" id="modal-request-tags">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        Loading...
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Assignment</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <p class="text-lg font-medium text-gray-900 mb-2" id="modal-assignment">Loading assignment...</p>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800" id="modal-assignment-status">
+                                    Loading...
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Timeline</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <ul class="space-y-2 text-sm text-gray-700" id="modal-timeline">
+                                    <li class="flex items-center space-x-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Created: Loading...</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t pt-4">
+                    <h4 class="text-sm font-semibold text-gray-500 uppercase mb-3">Recent Actions</h4>
+                    <div class="p-4 border border-gray-100 rounded-lg bg-gray-50">
+                        <ul class="space-y-3" id="modal-recent-actions">
+                            <li class="flex justify-between items-center text-sm text-gray-800">
+                                <span class="flex items-center space-x-2">
+                                    <span class="h-2 w-2 bg-gray-300 rounded-full"></span>
+                                    <span>Loading actions...</span>
+                                </span>
+                                <span class="text-xs text-gray-500">Loading...</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
   <!-- The rest of your template remains the same -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div>
       <div class="bg-white border border-gray-200 rounded-xl dark:bg-dark-card dark:border-dark-border">
         <div class="p-6">
-          <div class="text-2xl font-semibold tracking-[-0.6px] dark:text-white">Quick Actions</div>
+          <div class="text-2xl text-gray-900 font-semibold tracking-[-0.6px] dark:text-white">Quick Actions</div>
         </div>
         <div class="px-6 pb-6 space-y-3">
-          <a href="{% url 'jobs:job_create' %}" class="block">
+          <a href="/" class="block">
             <div class="border border-gray-200 rounded-xl cursor-pointer dark:border-dark-border">
               <div class="p-4 flex items-center gap-3">
                 <div class="p-2 rounded bg-[color:var(--brand,#EE7C2B)] text-white" style="--brand:#EE7C2B"><i class="fa-solid fa-plus text-xs"></i></div>
                 <div class="min-w-0">
-                  <p class="font-medium truncate dark:text-white">Create New Job</p>
-                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">Post a new job opening</p>
+                  <p class="font-medium truncate text-gray-900 dark:text-white">Create New Request</p>
+                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">Submit a new emergency request</p>
                 </div>
               </div>
             </div>
           </a>
-          <a href="/resumes/upload" class="block">
+          <a href="/departments" class="block">
             <div class="border border-gray-200 rounded-xl cursor-pointer dark:border-dark-border">
               <div class="p-4 flex items-center gap-3">
-                <div class="p-2 rounded bg-blue-500 text-white"><i class="fa-solid fa-users text-xs"></i></div>
+                <div class="p-2 rounded bg-blue-500 text-white"><i class="fa-solid fa-building text-xs"></i></div>
                 <div class="min-w-0">
-                  <p class="font-medium truncate dark:text-white">Upload Resumes</p>
-                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">Add candidate resumes</p>
+                  <p class="font-medium truncate text-gray-900 dark:text-white">View Departments</p>
+                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">Manage emergency departments</p>
                 </div>
               </div>
             </div>
           </a>
-          <a href="/matching" class="block">
+          <a href="/reports" class="block">
             <div class="border border-gray-200 rounded-xl cursor-pointer dark:border-dark-border">
               <div class="p-4 flex items-center gap-3">
-                <div class="p-2 rounded bg-green-500 text-white"><i class="fa-solid fa-square-check text-xs"></i></div>
+                <div class="p-2 rounded bg-green-500 text-white"><i class="fa-solid fa-chart-bar text-xs"></i></div>
                 <div class="min-w-0">
-                  <p class="font-medium truncate dark:text-white">Generate Reports</p>
-                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">Match jobs with resumes</p>
+                  <p class="font-medium text-gray-900 truncate dark:text-white">Generate Reports</p>
+                  <p class="text-sm text-gray-500 truncate dark:text-gray-400">View system analytics</p>
                 </div>
               </div>
             </div>
@@ -104,37 +456,45 @@
       </div>
     </div>
     <div class="lg:col-span-2">
-      <div class="bg-white border border-gray-200 rounded-xl dark:bg-dark-card dark:border-dark-border">
-        <div class="p-6">
-          <div class="text-2xl font-semibold tracking-[-0.6px] dark:text-white">Recent Activity</div>
-        </div>
-        <div class="px-6 pb-6">
-          <div>
-            {% for activity in recent_activity %}
-            <div class="flex items-center gap-3 p-3 rounded-lg">
-              <div class="p-2 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300"><i class="fa-solid {{ activity.icon }} text-xs"></i></div>
-              <div class="min-w-0">
-                <p class="text-sm font-medium truncate dark:text-white">{{ activity.title }}</p>
-                {% if activity.time %}
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ activity.time|timesince }} ago</p>
-                {% else %}
-                <p class="text-xs text-gray-500 dark:text-gray-400">Ongoing</p>
-                {% endif %}
-              </div>
+<div class="p-4 bg-white border border-gray-200 rounded-xl dark:bg-dark-card dark:border-dark-border">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6  dark:text-white">Recent Activity</h2>
+
+    <ul class="space-y-4">
+        {% for activity in recent_activity %}
+        <li class="relative">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi bi-check-circle-fill text-2xl text-green-500" style="font-size: 29px;"></i>
+                </div>
+
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center">
+                        <p class="text-base text-gray-800 font-normal dark:text-white" style="font-size: 19px;">
+                            <span class="text-gray-900 font-semibold dark:text-white">{{ activity.citizen_request.case_code }}</span> - {{ activity.description }}
+                        </p>
+                        <span class="text-xs text-gray-500 whitespace-nowrap ml-4 dark:text-white">
+                            {{ activity.created_at|date:"Y-m-d H:i" }}
+                        </span>
+                    </div>
+                </div>
             </div>
-            {% empty %}
-            <div class="text-center py-4 text-gray-500 dark:text-gray-400">
-              No recent activity
+        </li>
+        {% empty %}
+        <li class="relative">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi bi-info-circle text-2xl text-gray-400" style="font-size: 29px;"></i>
+                </div>
+                <div class="flex-grow">
+                    <p class="text-base text-gray-800 font-normal dark:text-white" style="font-size: 19px;">
+                        No recent activity found.
+                    </p>
+                </div>
             </div>
-            {% endfor %}
-          </div>
-          <div class="pt-4 mt-4 border-t">
-            <a href="/reports">
-              <button class="w-full h-9 px-4 border rounded-md text-sm dark:border-gray-700 dark:text-gray-300">View All Activity</button>
-            </a>
-          </div>
-        </div>
-      </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
     </div>
   </div>
 </div>

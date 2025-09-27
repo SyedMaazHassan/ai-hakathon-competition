@@ -1,0 +1,691 @@
+{% extends 'core/citizen_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<!-- Remove the CDN link and use your local Tailwind build instead -->
+{% endblock %}
+
+{% block citizen_block %}
+<div class="flex justify-center mt-2">
+    <div class="w-full max-w-xl px-4 sm:px-0">
+        <form method="POST" action="{% url 'submit_emergency_request' %}" id="emergency-form">
+            {% csrf_token %}
+            <div class="flex justify-start">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                    Select Emergency Type (Optional)
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div id="health-card"
+                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                     onclick="selectCard(this)"
+                     data-type="health"
+                     data-selected="false"
+                     style="height: 120px;">
+                    <i class="fas fa-heart text-3xl mb-1 text-gray-700"></i>
+                    <span class="font-semibold text-center text-sm text-gray-700">Health Emergency</span>
+                    <input type="radio" name="emergency_type" value="health" class="hidden">
+                </div>
+
+                <div id="police-card"
+                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                     onclick="selectCard(this)"
+                     data-type="police"
+                     data-selected="false"
+                     style="height: 120px;">
+                    <i class="fas fa-shield-alt text-3xl mb-1 text-gray-700"></i>
+                    <span class="font-semibold text-center text-sm text-gray-700">Police Emergency</span>
+                    <input type="radio" name="emergency_type" value="police" class="hidden">
+                </div>
+
+                <div id="fire-card"
+                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                     onclick="selectCard(this)"
+                     data-type="fire"
+                     data-selected="false"
+                     style="height: 120px;">
+                    <i class="fas fa-fire text-3xl mb-1 text-gray-700"></i>
+                    <span class="font-semibold text-center text-sm text-gray-700">Fire Emergency</span>
+                    <input type="radio" name="emergency_type" value="fire" class="hidden">
+                </div>
+
+                <div id="govt-card"
+                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                     onclick="selectCard(this)"
+                     data-type="govt"
+                     data-selected="false"
+                     style="height: 120px;">
+                    <i class="fas fa-building text-3xl mb-1 text-gray-700"></i>
+                    <span class="font-semibold text-center text-sm text-gray-700">Government Services</span>
+                    <input type="radio" name="emergency_type" value="govt" class="hidden">
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <h3 class="text-sm font-medium text-gray-600 mb-2">Your Location *</h3>
+                <div class="flex justify-between items-center p-3 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-brand-primary transition-colors"
+                     onclick="openMapModal()">
+                    <span class="flex items-center text-gray-800">
+                        <i class="fas fa-map-marker-alt text-brand-primary mr-2"></i>
+                        <span id="location-display">Click to select your location</span>
+                    </span>
+                    <button type="button" class="text-white btn px-2 py-1 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition" style="background: #EE7C2B; font-size:12px;">
+                        <i class="bi bi-pen mr-1" style="font-size: 13px;"></i>Change
+                    </button>
+                </div>
+                <input type="hidden" name="location" id="location-input" required>
+                <input type="hidden" name="latitude" id="latitude-input" required>
+                <input type="hidden" name="longitude" id="longitude-input" required>
+                <p class="text-xs text-gray-500 mt-1">Click above to select your location on the map</p>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Describe Your Emergency *</h3>
+
+                <div class="relative">
+                    <textarea id="emergency-description"
+                            name="description"
+                            rows="4"
+                            class="w-full p-4 pr-10 border border-gray-300 rounded-xl focus:ring-brand-primary focus:border-brand-primary transition resize-none"
+                            placeholder="Describe your emergency in detail..."
+                            required></textarea>
+
+                    <button type="button"
+                            class="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600 transition">
+                        <i class="fas fa-microphone text-xl"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-1">
+                    Your description helps us send the right help quickly.
+                </p>
+
+                <div class="flex items-center bg-yellow-50 p-3 mt-3 rounded-lg border border-yellow-200">
+                    <i class="fas fa-lightbulb text-yellow-800 mr-2"></i>
+                    <p class="text-sm text-gray-700">
+                        <span class="font-semibold">Example:</span> "Heart attack at home, need immediate help"
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                  <button id="submit-request-btn" type="submit" disabled style="background: #EE7C2B;" class="cursor-not-allowed d-flex w-full text-white btn px-4 py-2 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        
+                        <span class="my-auto mx-auto">Submit Emergency Request</span>
+                    </button>
+
+                <hr class="my-3"/>
+
+                <p class="text-sm text-gray-600 mb-3">For immediate life-threatening emergencies:</p>
+                <a href="tel:1122"
+                   class="text-red inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold bg-red-100 hover:text-red-600 text-red-600 text-decoration-none border border-red-300">
+                    <i class="fas fa-phone mr-2"></i>
+                    <span class="text-red hover:text-red-600">Call 1122</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Google Maps Modal -->
+<div id="map-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Select Your Location</h3>
+                            <!-- Add this new button section -->
+                <div class="">
+                    <button id="save-location-btn"
+                            onclick="saveAndCloseLocation()"
+                            style="background: #EE7C2B;" class="text-white btn px-4 py-2 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Save This Location & Close
+                    </button>
+                </div>
+        </div>
+
+<div class="p-6 overflow-y-auto max-h-[70vh]">
+    <div class="mb-4">
+        <div class="relative">
+            <input type="text"
+                   id="map-search"
+                   placeholder="Search for a location..."
+                   class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
+            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+        </div>
+    </div>
+
+    <div id="map" class="w-full h-96 rounded-lg border border-gray-300"></div>
+
+    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center">
+                <i class="fas fa-info-circle text-brand-primary mr-2"></i>
+                <span class="font-medium">Selected Location:</span>
+            </div>
+            <button onclick="useCurrentLocation()" class="text-sm text-brand-primary hover:text-orange-600 flex items-center">
+                <i class="fas fa-crosshairs mr-1"></i> Use Current Location
+            </button>
+        </div>
+        <p id="selected-address" class="text-gray-600 mb-2">Drag the marker to adjust your location</p>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <span class="text-sm text-gray-500">Latitude:</span>
+                <span id="selected-lat" class="font-mono block">0.0000</span>
+            </div>
+            <div>
+                <span class="text-sm text-gray-500">Longitude:</span>
+                <span id="selected-lng" class="font-mono block">0.0000</span>
+            </div>
+        </div>
+    </div>
+            <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
+            <button onclick="closeMapModal()"
+                    class="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition">
+                Close
+            </button>
+            <button id="save-location-btn"
+                    onclick="saveAndCloseLocation()"
+                   style="background: #EE7C2B;" class="text-white btn px-4 py-2 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                <i class="fas fa-check-circle mr-2"></i>
+                Save
+            </button>
+        </div>
+</div>
+
+
+
+    </div>
+</div>
+
+
+
+
+
+<!-- Success Modal -->
+<div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Request Submitted!</h3>
+            <p class="text-gray-600 mb-4">Your emergency request has been received. Help is on the way.</p>
+            <button onclick="closeSuccessModal()" class="bg-brand-primary text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock citizen_block %}
+
+{% block extra_js %}
+<script>
+    // Global variable to track if maps API is loaded
+    let mapsApiLoaded = false;
+    let mapsApiLoading = false;
+    let map = null;
+    let marker = null;
+    let geocoder = null;
+    let autocomplete = null;
+    let isLocationSelected = false;
+    let mapModalRequested = false; // Track if modal was requested
+
+    // Color scheme matching your brand
+    const COLOR_MAP = {
+        'health': {
+            bg_selected: 'bg-red-500 border-red-500',
+            icon: 'fas fa-heart'
+        },
+        'police': {
+            bg_selected: 'bg-blue-500 border-blue-500',
+            icon: 'fas fa-shield-alt'
+        },
+        'fire': {
+            bg_selected: 'bg-orange-500 border-orange-500',
+            icon: 'fas fa-fire'
+        },
+        'govt': {
+            bg_selected: 'bg-green-500 border-green-500',
+            icon: 'fas fa-building'
+        }
+    };
+
+    const UNSELECTED_CLASSES = 'bg-white border-gray-300 shadow-sm hover:bg-gray-50';
+    const SELECTED_TEXT_CLASSES = 'text-white';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.emergency-card');
+        cards.forEach(card => {
+            const isSelected = card.getAttribute('data-selected') === 'true';
+            updateCardStyle(card, isSelected);
+        });
+
+        checkFormValidity();
+
+        // Add event listeners for form validation
+        document.getElementById('emergency-description').addEventListener('input', checkFormValidity);
+
+        // Form submission handler
+        document.getElementById('emergency-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitEmergencyRequest();
+        });
+    });
+
+    function selectCard(clickedCard) {
+        const cards = document.querySelectorAll('.emergency-card');
+        const cardType = clickedCard.getAttribute('data-type');
+
+        cards.forEach(card => {
+            if (card === clickedCard) {
+                const isCurrentlySelected = card.getAttribute('data-selected') === 'true';
+                card.setAttribute('data-selected', !isCurrentlySelected);
+                updateCardStyle(card, !isCurrentlySelected);
+                card.querySelector('input[type="radio"]').checked = !isCurrentlySelected;
+            }
+        });
+
+        checkFormValidity();
+    }
+
+    function updateCardStyle(card, isSelected) {
+        const icon = card.querySelector('i');
+        const text = card.querySelector('span');
+        const cardType = card.getAttribute('data-type');
+        const typeSelectedClasses = COLOR_MAP[cardType] ? COLOR_MAP[cardType].bg_selected : '';
+
+        // Reset all classes
+        card.className = 'emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg';
+
+        if (isSelected) {
+            card.classList.add(...typeSelectedClasses.split(' '), 'shadow-lg');
+            icon.classList.remove('text-gray-700');
+            icon.classList.add(SELECTED_TEXT_CLASSES);
+            text.classList.remove('text-gray-700');
+            text.classList.add(SELECTED_TEXT_CLASSES);
+        } else {
+            card.classList.add(...UNSELECTED_CLASSES.split(' '));
+            icon.classList.remove(SELECTED_TEXT_CLASSES);
+            icon.classList.add('text-gray-700');
+            text.classList.remove(SELECTED_TEXT_CLASSES);
+            text.classList.add('text-gray-700');
+        }
+    }
+
+    function checkFormValidity() {
+        const description = document.getElementById('emergency-description').value.trim();
+        const location = document.getElementById('location-input').value.trim();
+
+        const isValid = description.length > 0 && location.length > 0;
+
+        const submitButton = document.getElementById('submit-request-btn');
+
+        if (isValid) {
+            submitButton.disabled = false;
+            submitButton.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            submitButton.classList.add('bg-brand-primary', 'text-white', 'hover:bg-orange-600', 'cursor-pointer');
+        } else {
+            submitButton.disabled = true;
+            submitButton.classList.remove('bg-brand-primary', 'text-white', 'hover:bg-orange-600', 'cursor-pointer');
+            submitButton.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        }
+    }
+
+    // Google Maps Functions
+    function loadGoogleMapsAPI() {
+        if (mapsApiLoaded || mapsApiLoading) return;
+
+        mapsApiLoading = true;
+        mapModalRequested = true; // Mark that modal was requested
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap`;
+        script.async = true;
+        script.defer = true;
+        script.onerror = function() {
+            mapsApiLoading = false;
+            mapModalRequested = false;
+            console.error('Failed to load Google Maps API');
+            alert('Failed to load maps. Please check your internet connection.');
+        };
+        document.head.appendChild(script);
+    }
+
+    function initMap() {
+        if (typeof google === 'undefined') {
+            console.error('Google Maps API not loaded');
+            return;
+        }
+
+        mapsApiLoaded = true;
+        mapsApiLoading = false;
+
+        geocoder = new google.maps.Geocoder();
+
+        // Default to Lahore center - ensure this is a proper LatLng object
+        const defaultLocation = new google.maps.LatLng(31.5204, 74.3587);
+
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: defaultLocation,
+            zoom: 12,
+            styles: [
+                {
+                    featureType: "all",
+                    elementType: "geometry",
+                    stylers: [{ color: "#f5f5f5" }]
+                },
+                {
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [{ visibility: "off" }]
+                }
+            ]
+        });
+
+        marker = new google.maps.Marker({
+            map: map,
+            position: defaultLocation,
+            draggable: true,
+            animation: google.maps.Animation.DROP,
+            icon: {
+                url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDNy41ODYgMiA0IDUuNTg2IDQgMTBDNCAxNC40MTQgNy41ODYgMTggMTIgMThDMTYuNDE0IDE4IDIwIDE0LjQxNCAyMCAxMEMyMCA1LjU4NiAxNi40MTQgMiAxMiAyWk0xMiAxNkM4LjY4NiAxNiA2IDEzLjMxNCA2IDEwQzYgNi42ODYgOC42ODYgNCAxMiA0QzE1LjMxNCA0IDE4IDYuNjg2IDE4IDEwQzE4IDEzLjMxNCAxNS4zMTQgMTYgMTIgMTZaIiBmaWxsPSIjRUU3QzJCIi8+CjxjaXJjbGUgY3g9IjEyIiBjeT0iMTAiIHI9IjMiIGZpbGw9IiNFRTdDMkIiLz4KPC9zdmc+',
+                scaledSize: new google.maps.Size(40, 40),
+                anchor: new google.maps.Point(20, 40)
+            }
+        });
+
+        // Initialize autocomplete
+        const searchInput = document.getElementById('map-search');
+        autocomplete = new google.maps.places.Autocomplete(searchInput);
+        autocomplete.bindTo('bounds', map);
+
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry) {
+                return;
+            }
+
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);
+            }
+
+            marker.setPosition(place.geometry.location);
+            updateAddress(place.geometry.location);
+
+            // Enable confirm button when place is selected
+            enableConfirmButton();
+            enableSaveButton();
+        });
+
+        // Update address when marker is dragged
+        google.maps.event.addListener(marker, 'dragend', function() {
+            updateAddress(marker.getPosition());
+            enableConfirmButton();
+            enableSaveButton();
+        });
+
+        // Update address when map is clicked
+        google.maps.event.addListener(map, 'click', function(event) {
+            marker.setPosition(event.latLng);
+            updateAddress(event.latLng);
+            enableConfirmButton();
+            enableSaveButton();
+        });
+
+        updateAddress(defaultLocation);
+
+        // Show modal after map is initialized if it was requested
+        if (mapModalRequested) {
+            showMapModal();
+            mapModalRequested = false;
+        }
+    }
+
+    function updateAddress(latLng) {
+        // Ensure latLng is a Google Maps LatLng object
+        if (!latLng || typeof latLng.lat !== 'function') {
+            console.error('Invalid latLng object:', latLng);
+            // Try to convert to LatLng object
+            if (latLng && typeof latLng.lat === 'number' && typeof latLng.lng === 'number') {
+                latLng = new google.maps.LatLng(latLng.lat, latLng.lng);
+            } else {
+                return;
+            }
+        }
+
+        geocoder.geocode({ 'location': latLng }, (results, status) => {
+            if (status === 'OK') {
+                if (results[0]) {
+                    document.getElementById('selected-address').textContent = results[0].formatted_address;
+                    isLocationSelected = true;
+                }
+            } else {
+                document.getElementById('selected-address').textContent = `Lat: ${latLng.lat().toFixed(6)}, Lng: ${latLng.lng().toFixed(6)}`;
+                isLocationSelected = true;
+            }
+            document.getElementById('selected-lat').textContent = latLng.lat().toFixed(6);
+            document.getElementById('selected-lng').textContent = latLng.lng().toFixed(6);
+        });
+    }
+
+    function enableConfirmButton() {
+        const confirmButton = document.getElementById('confirm-location-btn');
+        confirmButton.disabled = false;
+        confirmButton.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        confirmButton.classList.add('bg-brand-primary', 'text-white', 'hover:bg-orange-600', 'cursor-pointer');
+    }
+
+    function enableSaveButton() {
+        const saveButton = document.getElementById('save-location-btn');
+        saveButton.disabled = false;
+        saveButton.classList.remove('bg-gray-300', 'cursor-not-allowed');
+        saveButton.classList.add('bg-green-500', 'hover:bg-green-600', 'cursor-pointer');
+    }
+
+    function useCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const latLng = new google.maps.LatLng(
+                        position.coords.latitude,
+                        position.coords.longitude
+                    );
+
+                    map.setCenter(latLng);
+                    map.setZoom(16);
+                    marker.setPosition(latLng);
+                    updateAddress(latLng);
+                    enableConfirmButton();
+                    enableSaveButton();
+                },
+                function(error) {
+                    alert('Unable to get your current location. Please select manually from the map.');
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
+    }
+
+    function openMapModal() {
+        console.log('Opening map modal...');
+
+        // Load Google Maps API if not already loaded
+        if (!mapsApiLoaded && !mapsApiLoading) {
+            console.log('Loading Google Maps API...');
+            loadGoogleMapsAPI();
+        } else if (mapsApiLoaded && map) {
+            // Map is already loaded, just show the modal
+            console.log('Map already loaded, showing modal...');
+            showMapModal();
+        } else if (mapsApiLoading) {
+            // Maps are loading, set flag to show modal when ready
+            console.log('Maps loading, will show modal when ready...');
+            mapModalRequested = true;
+        }
+    }
+
+    function showMapModal() {
+        console.log('Showing map modal...');
+        const mapModal = document.getElementById('map-modal');
+        mapModal.classList.remove('hidden');
+        mapModal.style.display = 'flex';
+
+        // Reset confirm button state
+        const confirmButton = document.getElementById('confirm-location-btn');
+        confirmButton.disabled = true;
+        confirmButton.classList.remove('bg-brand-primary', 'text-white', 'hover:bg-orange-600', 'cursor-pointer');
+        confirmButton.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+
+        // Reset save button state
+        const saveButton = document.getElementById('save-location-btn');
+        saveButton.disabled = true;
+        saveButton.classList.remove('bg-green-500', 'hover:bg-green-600', 'cursor-pointer');
+        saveButton.classList.add('bg-gray-300', 'cursor-not-allowed');
+
+        // Trigger map resize after a short delay to ensure modal is visible
+        setTimeout(() => {
+            if (map) {
+                google.maps.event.trigger(map, 'resize');
+                // Re-center map if we already have a location
+                const latInput = document.getElementById('latitude-input');
+                const lngInput = document.getElementById('longitude-input');
+
+                if (latInput.value && lngInput.value) {
+                    const lat = parseFloat(latInput.value);
+                    const lng = parseFloat(lngInput.value);
+                    const latLng = new google.maps.LatLng(lat, lng);
+                    map.setCenter(latLng);
+                    marker.setPosition(latLng);
+                    updateAddress(latLng);
+                    enableConfirmButton();
+                    enableSaveButton();
+                } else {
+                    // Center on default location
+                    const defaultLocation = new google.maps.LatLng(31.5204, 74.3587);
+                    map.setCenter(defaultLocation);
+                    marker.setPosition(defaultLocation);
+                    updateAddress(defaultLocation);
+                }
+            }
+        }, 100);
+    }
+
+    function closeMapModal() {
+        console.log('Closing map modal...');
+        const mapModal = document.getElementById('map-modal');
+        mapModal.style.display = "none";
+    }
+
+    // NEW FUNCTION: Save location and close modal
+    function saveAndCloseLocation() {
+        console.log('Saving location and closing modal...');
+        if (!marker) {
+            console.error('Marker not available');
+            return;
+        }
+
+        const position = marker.getPosition();
+        const lat = position.lat();
+        const lng = position.lng();
+        const address = document.getElementById('selected-address').textContent;
+
+        console.log('Setting location values:', { lat, lng, address });
+
+        document.getElementById('location-input').value = address;
+        document.getElementById('latitude-input').value = lat;
+        document.getElementById('longitude-input').value = lng;
+        document.getElementById('location-display').textContent = address;
+
+        // Close modal immediately after saving
+        closeMapModal();
+        checkFormValidity();
+
+        // Show success feedback
+        showLocationSuccess();
+    }
+
+
+    function showLocationSuccess() {
+        const locationDisplay = document.getElementById('location-display');
+        const originalText = locationDisplay.textContent;
+        locationDisplay.innerHTML = `<span class="text-green-600 flex items-center"><i class="fas fa-check-circle mr-2"></i> ${originalText}</span>`;
+
+        setTimeout(() => {
+            locationDisplay.textContent = originalText;
+        }, 3000);
+    }
+
+    function submitEmergencyRequest() {
+        // Show success modal
+        document.getElementById('success-modal').classList.remove('hidden');
+
+        // Submit form after delay
+        setTimeout(() => {
+            document.getElementById('emergency-form').submit();
+        }, 2000);
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('success-modal').classList.add('hidden');
+    }
+
+    // Make functions available globally
+    window.initMap = initMap;
+    window.openMapModal = openMapModal;
+    window.closeMapModal = closeMapModal;
+    window.useCurrentLocation = useCurrentLocation;
+    window.confirmLocation = confirmLocation;
+    window.saveAndCloseLocation = saveAndCloseLocation; // Add this to global scope
+    window.closeSuccessModal = closeSuccessModal;
+    window.selectCard = selectCard;
+</script>
+
+<style>
+    .pac-container {
+        z-index: 10000 !important;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .pac-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .pac-item:hover {
+        background-color: #f9fafb;
+    }
+
+    .pac-item-query {
+        color: #1f2937;
+        font-size: 14px;
+    }
+
+    #map-modal {
+        backdrop-filter: blur(5px);
+    }
+
+    /* Ensure modal is properly displayed */
+    .hidden {
+        display: none !important;
+    }
+
+    /* Style for the new save button */
+    #save-location-btn:disabled {
+        background-color: #d1d5db !important;
+        color: #6b7280 !important;
+        cursor: not-allowed !important;
+    }
+
+    #save-location-btn {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock extra_js %}

@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dashboard{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <style>
         [x-cloak] { display: none !important; }
         html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
 
@@ -185,7 +186,7 @@
                 <div class="w-6 h-6 rounded bg-[color:var(--brand,#EE7C2B)] flex items-center justify-center" style="--brand:#EE7C2B">
                     <i class="fa-solid fa-briefcase text-white text-xs"></i>
                 </div>
-                <span class="ml-2 font-semibold dark:text-white">Hire With AI</span>
+                <span class="ml-2 font-semibold dark:text-black">Frontline - AI Hackathon</span>
             </div>
             <div class="px-3 text-xs text-gray-500 font-medium dark:text-gray-400">Main Menu</div>
             <nav class="mt-2 px-2 space-y-1">
@@ -195,66 +196,82 @@
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-table-cells-large w-5 mr-3 text-center {% if request.path == '/' %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                   <i class="bi bi-grid-1x2-fill w-5 mr-3 text-center {% if request.path == '/' %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
                   <span class="flex-1">Dashboard</span>
                 </a>
 
-                <a href="{% url 'jobs:jobs_list' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'jobs' in request.path %}
+                <a href="{% url "depts:citizen-requests" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                    {% if 'requests' in request.path %}
                      bg-menu-active text-white dark:bg-dark-hover dark:text-white
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'jobs' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">Jobs</span>
+                  <i class="fas fa-list-check w-5 mr-3 text-center {% if 'requests' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">All Requests</span>
                 </a>
 
-                <a href="{% url 'hiring:resumes_list' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'resumes' in request.path %}
-                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
-                   {% else %}
-                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-                   {% endif %}">
-                  <i class="fas fa-users w-5 mr-3 text-center {% if 'resumes' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">Candidates</span>
-                </a>
+<!--                <a href="{% url "appointments" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors-->
+<!--                   {% if 'appointments' in request.path %}-->
+<!--                     bg-menu-active text-white dark:bg-dark-hover dark:text-white-->
+<!--                   {% else %}-->
+<!--                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white-->
+<!--                   {% endif %}">-->
+<!--                  <i class="fas fa-calendar-check w-5 mr-3 text-center {% if 'appointments' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>-->
+<!--                  <span class="flex-1">Appointments</span>-->
+<!--                </a>-->
 
-                <a href="{% url 'hiring:job_fit_reports' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'reports' in request.path %}
+<!--                <a href="{% url "analytics" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors-->
+<!--                   {% if 'analytics' in request.path %}-->
+<!--                     bg-menu-active text-white dark:bg-dark-hover dark:text-white-->
+<!--                   {% else %}-->
+<!--                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white-->
+<!--                   {% endif %}">-->
+<!--                  <i class="fas fa-chart-line w-5 mr-3 text-center {% if 'analytics' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>-->
+<!--                  <span class="flex-1">Analytics</span>-->
+<!--                </a>-->
+
+                <a href="{% url "depts:emergency-calls" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'calls' in request.path %}
                      bg-menu-active text-white dark:bg-dark-hover dark:text-white
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-chart-column w-5 mr-3 text-center {% if 'reports' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">Reports</span>
+                  <i class="fas fa-phone-alt w-5 mr-3 text-center {% if 'calls' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Emergency Calls</span>
                 </a>
             </nav>
             <div class="mt-4 px-3 text-xs text-gray-500 font-medium dark:text-gray-400">Quick Actions</div>
             <nav class="mt-2 px-2 space-y-1">
-                <a href="{% url 'jobs:job_create' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'jobs/create' in request.path %}
-                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
-                   {% else %}
-                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-                   {% endif %}">
-                  <i class="fas fa-plus w-5 mr-3 text-center {% if 'create' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">Create Job</span>
-                </a>
-                <a href="{% url 'logout' %}"
-   class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-          {% if 'logout' in request.path %}
-            bg-menu-active text-white dark:bg-dark-hover dark:text-white
-          {% else %}
-            text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-          {% endif %}">
-  <i class="fas fa-sign-out-alt w-5 mr-3 text-center
+<!--                <a href="{% url 'jobs:job_create' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors-->
+<!--                   {% if 'jobs/jobs/new/' in request.path %}-->
+<!--                     bg-menu-active text-white dark:bg-dark-hover dark:text-white-->
+<!--                   {% else %}-->
+<!--                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white-->
+<!--                   {% endif %}">-->
+<!--                  <i class="fas fa-plus-circle w-5 mr-3 text-center {% if 'jobs/jobs/new/' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>-->
+<!--                  <span class="flex-1">New Request</span>-->
+<!--                </a>-->
+
+<form method="post" action="{% url 'logout' %}" class="w-full">
+    {% csrf_token %}
+    <button type="submit"
+        class="group flex items-center w-full p-3 mb-1 text-sm font-medium rounded-full transition-colors
+               {% if 'logout' in request.path %}
+                 bg-menu-active text-white dark:bg-dark-hover dark:text-white
+               {% else %}
+                 text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+               {% endif %}">
+        <i class="fas fa-sign-out-alt w-5 mr-3 text-center
             {% if 'logout' in request.path %}
               text-white dark:text-white
             {% else %}
               text-menu-icon dark:text-dark-text
             {% endif %}"></i>
-  <span class="flex-1">Logout</span>
-</a>
+        <span class="flex-1 text-left">Logout</span>
+    </button>
+</form>
+
+
 
             </nav>
             <div class="absolute bottom-0 left-0 right-0 p-4">
@@ -278,7 +295,7 @@
                             <div class="w-8 h-8 rounded bg-[color:var(--brand,#EE7C2B)] flex items-center justify-center" style="--brand:#EE7C2B">
                                 <i class="fa-solid fa-building text-white text-sm"></i>
                             </div>
-                            <h1 class="text-lg font-semibold dark:text-white">Hire With AI</h1>
+                            <h1 class="text-lg font-semibold dark:text-black">Frontline - AI Hackathon</h1>
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
@@ -291,8 +308,8 @@
                         </button>
                         <div class="flex items-center gap-3">
     <!-- User Name & Email -->
-    <div class="text-right hidden sm:block">
-        <p class="text-sm font-medium dark:text-white">
+    <div class="text-right hidden sm:block ">
+        <p class="text-sm text-gray-900 font-medium dark:text-white">
             {{ request.user.get_full_name|default:request.user.email }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">

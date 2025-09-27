@@ -7,10 +7,7 @@ from .forms import CustomPasswordResetForm
 urlpatterns = [
     path(
         "login/",
-        auth_views.LoginView.as_view(
-            template_name="authentication/login.html",
-            authentication_form=EmailLoginForm
-        ),
+        views.CustomLoginView.as_view(),
         name="login",
     ),
     path("signup/", views.signup, name="signup"),
