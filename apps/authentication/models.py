@@ -28,8 +28,8 @@ class CustomUser(AbstractUser):
     phone = models.CharField(validators=[phone_regex], max_length=15, blank=True)
     # Location (for registration)
     city = models.ForeignKey(
-        City,
-        on_delete=models.PROTECT,
+        'depts.City',
+        on_delete=models.SET_NULL,
         related_name="users",
         null=True,
         blank=True
