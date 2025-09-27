@@ -23,9 +23,9 @@
             <div class="flex justify-between items-center h-16 max-w-xl mx-auto"> 
                 
                 <div class="flex items-center">
-                    <a href="/" class="flex-shrink-0 flex items-center space-x-2">
-                        <div class="h-8 w-8 rounded-full flex items-center justify-center" style="background-color: #EE7C2B;">
-                            <i class="bi bi-exclamation-circle-fill text-white text-lg"></i>
+                    <a href="{% url 'submit_emergency_request' %}" class="flex-shrink-0 flex items-center space-x-2">
+                        <div class="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center" style="background: #EE7C2B;">
+                            <i class="bi bi-exclamation-circle-fill text-white text-lg" style="background: #EE7C2B;"></i>
                         </div>
                         <div>
                             <span class="text-xl font-bold text-gray-900 leading-none">Emergency Services</span>
