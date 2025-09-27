@@ -36,10 +36,10 @@ INSTALLED_APPS = [
 
     # Local apps
     'apps.core',
+    'apps.depts',
     'apps.authentication',
     'apps.hiring',
     'apps.jobs',
-    'apps.depts',
     'apps.integrations',
 
     # Third-party apps

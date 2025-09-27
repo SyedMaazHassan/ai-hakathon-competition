@@ -3,6 +3,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django_resized import ResizedImageField
 from .manager import CustomUserManager
+from apps.depts.models import City
 
 
 class CustomUser(AbstractUser):
@@ -27,8 +28,13 @@ class CustomUser(AbstractUser):
     phone = models.CharField(validators=[phone_regex], max_length=15, blank=True)
     # Location (for registration)
     city = models.ForeignKey(
+<<<<<<< HEAD
         'depts.City',
         on_delete=models.SET_NULL,
+=======
+        City,
+        on_delete=models.PROTECT,
+>>>>>>> 8bb7984b1d77feda1a4222ecaceb5c2fb7507f15
         related_name="users",
         null=True,
         blank=True
