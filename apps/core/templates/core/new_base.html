@@ -196,17 +196,17 @@
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-grid-2 w-5 mr-3 text-center {% if request.path == '/' %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                   <i class="bi bi-grid-1x2-fill w-5 mr-3 text-center {% if request.path == '/' %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
                   <span class="flex-1">Dashboard</span>
                 </a>
 
                 <a href="{% url "depts:citizen-requests" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'all-request' in request.path %}
+                    {% if 'requests' in request.path %}
                      bg-menu-active text-white dark:bg-dark-hover dark:text-white
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-list-check w-5 mr-3 text-center {% if 'all-request' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <i class="fas fa-list-check w-5 mr-3 text-center {% if 'requests' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
                   <span class="flex-1">All Requests</span>
                 </a>
 
@@ -231,24 +231,24 @@
                 </a>
 
                 <a href="{% url "depts:emergency-calls" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'emergency-calls' in request.path %}
+                   {% if 'calls' in request.path %}
                      bg-menu-active text-white dark:bg-dark-hover dark:text-white
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-phone-alt w-5 mr-3 text-center {% if 'emergency-calls' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <i class="fas fa-phone-alt w-5 mr-3 text-center {% if 'calls' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
                   <span class="flex-1">Emergency Calls</span>
                 </a>
             </nav>
             <div class="mt-4 px-3 text-xs text-gray-500 font-medium dark:text-gray-400">Quick Actions</div>
             <nav class="mt-2 px-2 space-y-1">
                 <a href="{% url 'jobs:job_create' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'jobs/create' in request.path %}
+                   {% if 'jobs/jobs/new/' in request.path %}
                      bg-menu-active text-white dark:bg-dark-hover dark:text-white
                    {% else %}
                      text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
                    {% endif %}">
-                  <i class="fas fa-plus-circle w-5 mr-3 text-center {% if 'create' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <i class="fas fa-plus-circle w-5 mr-3 text-center {% if 'jobs/jobs/new/' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
                   <span class="flex-1">New Request</span>
                 </a>
 
@@ -303,8 +303,8 @@
                         </button>
                         <div class="flex items-center gap-3">
     <!-- User Name & Email -->
-    <div class="text-right hidden sm:block">
-        <p class="text-sm font-medium dark:text-white">
+    <div class="text-right hidden sm:block ">
+        <p class="text-sm text-gray-900 font-medium dark:text-white">
             {{ request.user.get_full_name|default:request.user.email }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
