@@ -70,8 +70,8 @@
                         <i class="fas fa-map-marker-alt text-brand-primary mr-2"></i>
                         <span id="location-display">Click to select your location</span>
                     </span>
-                    <button type="button" class="text-brand-primary font-semibold hover:text-orange-600 transition">
-                        <i class="fas fa-edit mr-1"></i> Change
+                    <button type="button" class="text-white btn px-2 py-1 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition" style="background: #EE7C2B; font-size:12px;">
+                        <i class="bi bi-pen mr-1" style="font-size: 13px;"></i>Change
                     </button>
                 </div>
                 <input type="hidden" name="location" id="location-input" required>
@@ -102,7 +102,7 @@
                 </p>
 
                 <div class="flex items-center bg-yellow-50 p-3 mt-3 rounded-lg border border-yellow-200">
-                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    <i class="fas fa-lightbulb text-yellow-800 mr-2"></i>
                     <p class="text-sm text-gray-700">
                         <span class="font-semibold">Example:</span> "Heart attack at home, need immediate help"
                     </p>
@@ -110,22 +110,18 @@
             </div>
 
             <div class="mt-8 text-center">
-                <button id="submit-request-btn"
-                        type="submit"
-                        disabled
-                        class="w-full py-3 rounded-xl flex items-center justify-center font-bold text-lg transition duration-300
-                               bg-gray-300 text-gray-500 cursor-not-allowed">
-                    <i class="fas fa-paper-plane mr-2"></i>
-                    Submit Emergency Request
-                </button>
+                  <button id="submit-request-btn" type="submit" disabled style="background: #EE7C2B;" class="cursor-not-allowed d-flex w-full text-white btn px-4 py-2 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        
+                        <span class="my-auto mx-auto">Submit Emergency Request</span>
+                    </button>
 
                 <hr class="my-3"/>
 
                 <p class="text-sm text-gray-600 mb-3">For immediate life-threatening emergencies:</p>
                 <a href="tel:1122"
-                   class="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold bg-red-100 text-red-600 border border-red-300 hover:bg-red-200 transition">
+                   class="text-red inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold bg-red-100 hover:text-red-600 text-red-600 text-decoration-none border border-red-300">
                     <i class="fas fa-phone mr-2"></i>
-                    Call 1122
+                    <span class="text-red hover:text-red-600">Call 1122</span>
                 </a>
             </div>
         </form>
@@ -141,7 +137,7 @@
                 <div class="">
                     <button id="save-location-btn"
                             onclick="saveAndCloseLocation()"
-                            class="w-full px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition flex items-center justify-center">
+                            style="background: #EE7C2B;" class="text-white btn px-4 py-2 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
                         <i class="fas fa-check-circle mr-2"></i>
                         Save This Location & Close
                     </button>
@@ -185,12 +181,12 @@
     </div>
             <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
             <button onclick="closeMapModal()"
-                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                    class="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition">
                 Close
             </button>
             <button id="save-location-btn"
                     onclick="saveAndCloseLocation()"
-                    class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition flex items-center justify-center">
+                   style="background: #EE7C2B;" class="text-white btn px-4 py-2 rounded-full d-flex text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
                 <i class="fas fa-check-circle mr-2"></i>
                 Save
             </button>
