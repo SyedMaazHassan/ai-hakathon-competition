@@ -28,7 +28,7 @@ class CustomUser(AbstractUser):
     # Location (for registration)
     city = models.ForeignKey(
         'depts.City',
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="users",
         null=True,
         blank=True
