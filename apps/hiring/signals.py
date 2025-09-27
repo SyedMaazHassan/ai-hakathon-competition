@@ -7,8 +7,9 @@ from apps.hiring.models import Resume, JobApplication, Job
 from apps.hiring.tasks import (
     process_parsed_resume,
     process_job_fit_scoring,
-    process_job_description_parsing,
 )
+from apps.jobs.tasks import process_job_description_parsing
+
 
 logger = logging.getLogger(__name__)
 logger.info("Hiring signals module loaded successfully!")

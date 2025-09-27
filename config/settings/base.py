@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'apps.authentication',
     'apps.hiring',
     'apps.jobs',
+    'apps.depts',
+    'apps.integrations',
 
     # Third-party apps
     'django_bootstrap5',
@@ -163,3 +165,23 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@example.com'
 LOGIN_REDIRECT_URL = '/'  # Redirect to the home page after login
 LOGIN_URL = '/auth/login'  # URL name for the login view
 LOGOUT_REDIRECT_URL = '/auth/login'  # Redirect to the home page after logout
+
+
+
+
+
+
+# API KEYS
+
+# Google Calendar
+GOOGLE_CALENDAR_CLIENT_ID = os.environ.get("GOOGLE_CALENDAR_CLIENT_ID")
+GOOGLE_CALENDAR_CLIENT_SECRET = os.environ.get("GOOGLE_CALENDAR_CLIENT_SECRET")
+GOOGLE_CALENDAR_REDIRECT_URI = os.environ.get("GOOGLE_CALENDAR_REDIRECT_URI")
+
+# Google Maps
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+
+# Twilio
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
+TWILIO_FROM_PHONE_NUMBER = os.environ.get("TWILIO_FROM_PHONE_NUMBER")

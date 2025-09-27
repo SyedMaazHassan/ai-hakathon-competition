@@ -1,5 +1,7 @@
 from django.db import models
-from apps.core.models import BaseModel, User
+from django.contrib.auth import get_user_model
+from apps.core.models import BaseModel
+User = get_user_model()
 from apps.hiring.choices.job import *  # all enums
 from apps.hiring.pydantic_models.general import DateModel
 

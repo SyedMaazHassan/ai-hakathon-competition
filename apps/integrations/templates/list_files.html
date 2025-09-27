@@ -1,0 +1,130 @@
+{% extends "core/new_base.html" %}
+
+{% block title %}Google Drive Files{% endblock %}
+{% block current_page %}Drive Files{% endblock %}
+{% block page_title %}Google Drive Files{% endblock %}
+{% block page_subtitle %}Your Google Drive documents{% endblock %}
+
+{% block content %}
+
+<!-- Error State -->
+{% if not success %}
+<div class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-6 mb-6">
+    <div class="flex items-center">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+        <div>
+            <h3 class="text-lg font-medium text-red-800 dark:text-red-200">Error Loading Files</h3>
+            <p class="text-red-600 dark:text-red-300 mt-1">{{ error|default:"Unable to load Google Drive files" }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Files Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for file in drive_files %}
+    {% if file.previewUrl %}
+    <a href="{{ file.previewUrl }}" target="_blank" class="block">
+    {% endif %}
+        <div class="bg-white dark:bg-dark-card rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden {% if file.previewUrl %}cursor-pointer{% endif %}">
+            <!-- File Thumbnail -->
+            <div class="aspect-w-16 aspect-h-10 bg-gray-100 dark:bg-gray-800">
+                {% if file.thumbnailLink %}
+                    <img src="{{ file.thumbnailLink }}" alt="{{ file.name }}" class="w-full h-32 object-cover">
+                {% else %}
+                    <div class="w-full h-32 flex items-center justify-center">
+                        {% if file.mimeType == 'application/vnd.google-apps.document' %}
+                            <i class="fas fa-file-word text-4xl text-blue-500"></i>
+                        {% elif file.mimeType == 'application/vnd.google-apps.spreadsheet' %}
+                            <i class="fas fa-file-excel text-4xl text-green-500"></i>
+                        {% elif file.mimeType == 'application/vnd.google-apps.presentation' %}
+                            <i class="fas fa-file-powerpoint text-4xl text-orange-500"></i>
+                        {% elif file.mimeType == 'application/vnd.google-apps.folder' %}
+                            <i class="fas fa-folder text-4xl text-yellow-500"></i>
+                        {% elif file.mimeType == 'application/pdf' %}
+                            <i class="fas fa-file-pdf text-4xl text-red-500"></i>
+                        {% else %}
+                            <i class="fas fa-file text-4xl text-gray-500"></i>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- File Info -->
+            <div class="p-4">
+                <h3 class="font-medium text-gray-900 dark:text-white text-sm truncate mb-2" title="{{ file.name }}">
+                    {{ file.name }}
+                </h3>
+                
+                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    <span class="flex items-center">
+                        {% if file.mimeType == 'application/vnd.google-apps.document' %}
+                            <i class="fas fa-file-word text-blue-500 mr-1"></i> Doc
+                        {% elif file.mimeType == 'application/vnd.google-apps.spreadsheet' %}
+                            <i class="fas fa-file-excel text-green-500 mr-1"></i> Sheet
+                        {% elif file.mimeType == 'application/vnd.google-apps.presentation' %}
+                            <i class="fas fa-file-powerpoint text-orange-500 mr-1"></i> Slides
+                        {% elif file.mimeType == 'application/vnd.google-apps.folder' %}
+                            <i class="fas fa-folder text-yellow-500 mr-1"></i> Folder
+                        {% elif file.mimeType == 'application/pdf' %}
+                            <i class="fas fa-file-pdf text-red-500 mr-1"></i> PDF
+                        {% else %}
+                            <i class="fas fa-file text-gray-500 mr-1"></i> File
+                        {% endif %}
+                    </span>
+                    
+                    {% if file.modifiedTime %}
+                        <span>{{ file.modifiedTime|date:"M d" }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center justify-between" onclick="event.stopPropagation();">
+                    <div class="flex space-x-2">
+                        {% if file.webViewLink %}
+                        <a href="{{ file.webViewLink }}" target="_blank" 
+                           class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300" 
+                           title="Open in Google Drive"
+                           onclick="event.stopPropagation();">
+                            <i class="fas fa-external-link-alt text-sm"></i>
+                        </a>
+                        {% endif %}
+                        
+                        <button class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300" 
+                                title="Download"
+                                onclick="event.stopPropagation();">
+                            <i class="fas fa-download text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- File ID (for debugging) -->
+                    <span class="text-xs text-gray-400">{{ file.id|truncatechars:8 }}</span>
+                </div>
+            </div>
+        </div>
+    {% if file.previewUrl %}
+    </a>
+    {% endif %}
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-span-full">
+        <div class="bg-white dark:bg-dark-card rounded-lg shadow-md p-10 text-center">
+            <i class="fas fa-google-drive text-6xl mb-4 text-gray-300 dark:text-gray-600"></i>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No files found</h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-4">
+                {% if success %}
+                    Your Google Drive appears to be empty.
+                {% else %}
+                    Unable to load Google Drive files.
+                {% endif %}
+            </p>
+            <a href="{% url 'google_drive_list' %}" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-flex items-center">
+                <i class="fas fa-refresh mr-2"></i> Refresh
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

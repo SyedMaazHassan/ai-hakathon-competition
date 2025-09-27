@@ -65,3 +65,12 @@ tzdata==2025.2
 vine==5.1.0
 wcwidth==0.2.13
 whitenoise==6.8.2
+
+# Google API integrations
+google-api-python-client==2.150.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.1
+googlemaps==4.10.0
+
+# Twilio SMS integration
+twilio==9.8.2

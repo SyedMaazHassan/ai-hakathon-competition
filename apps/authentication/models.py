@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from .manager import CustomUserManager
+from django.core.validators import RegexValidator
 from django_resized import ResizedImageField
+from .manager import CustomUserManager
+
 
 class CustomUser(AbstractUser):
     username = None
@@ -14,11 +16,35 @@ class CustomUser(AbstractUser):
         force_format="WEBP",
         quality=75,
     )
+    phone_regex = RegexValidator(
+        regex=r'^\+92[0-9]{10}$',
+        message="Phone number must be in format: '+923001234567'"
+    )
+    
+    # Personal Information
+    first_name = models.CharField(max_length=80)
+    last_name = models.CharField(max_length=80, blank=True)
+    phone = models.CharField(validators=[phone_regex], max_length=15, blank=True)
+    # Location (for registration)
+    city = models.ForeignKey(
+        'depts.City',
+        on_delete=models.PROTECT,
+        related_name="users",
+        null=True,
+        blank=True
+    )
+    area = models.CharField(max_length=120, blank=True)
+    
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["first_name"]
 
     objects = CustomUserManager()
 
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
     def __str__(self):
-        return self.email
+        return f"{self.get_full_name()} ({self.email})"
+
+
