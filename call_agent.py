@@ -5,9 +5,8 @@ from vapi import Vapi
 
 class EmergencyCallAgent:
     def __init__(self, api_key: str = None, phone_number_id: str = None):
-        self.api_key = api_key or os.getenv("VAPI_API_KEY", "31b2c18d-d8c6-4750-a871-eb6b76e059c6")
-        self.phone_number_id = phone_number_id or os.getenv("VAPI_PHONE_NUMBER_ID",
-                                                            "0b99a20e-1109-4ef3-9c61-ab3aca4fd5c5")
+        self.api_key = api_key or os.getenv("VAPI_API_KEY")
+        self.phone_number_id = phone_number_id or os.getenv("VAPI_PHONE_NUMBER_ID")
         self.vapi = Vapi(token=self.api_key)
         self.assistant_id = None
         self.structured_output_id = None
@@ -60,7 +59,7 @@ class EmergencyCallAgent:
         payload = {
             "name": "Emergency Response Info",
             "type": "ai",
-            "description": "Extract critical emergency response information",
+            "description": "Extract critical emergency response information and dispatch confirmation",
             "schema": {
                 "type": "object",
                 "properties": {
@@ -72,29 +71,32 @@ class EmergencyCallAgent:
                         "type": "string",
                         "description": "Exact location of the emergency"
                     },
-                    "situationStatus": {
+                    "personInDanger": {
                         "type": "string",
-                        "description": "Current status of the situation"
+                        "description": "Name of the person who needs help"
                     },
-                    "numberOfPeople": {
-                        "type": "integer",
-                        "description": "Number of people involved"
-                    },
-                    "urgencyLevel": {
+                    "serviceRequested": {
                         "type": "string",
-                        "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-                        "description": "Urgency level of the emergency"
+                        "description": "Specific emergency service requested"
                     },
-                    "callerName": {
-                        "type": "string",
-                        "description": "Name of the person calling"
+                    "dispatchConfirmed": {
+                        "type": "boolean",
+                        "description": "Whether emergency services confirmed dispatch"
                     },
-                    "callerStatus": {
+                    "estimatedArrivalTime": {
                         "type": "string",
-                        "description": "Caller's condition (safe, injured, etc.)"
+                        "description": "Estimated time of arrival provided by operator"
+                    },
+                    "operatorInstructions": {
+                        "type": "string",
+                        "description": "Any instructions provided by the emergency operator"
+                    },
+                    "additionalInfoProvided": {
+                        "type": "string",
+                        "description": "Additional information shared with operator"
                     }
                 },
-                "required": ["emergencyType", "location", "urgencyLevel"]
+                "required": ["emergencyType", "location", "personInDanger", "serviceRequested"]
             }
         }
 
@@ -113,64 +115,90 @@ class EmergencyCallAgent:
 
         assistant = self.vapi.assistants.create(
             name=f"Emergency Response Agent - {call_reason}",
-            first_message=self._get_emergency_greeting(call_reason),
+            first_message=self._get_emergency_greeting(call_reason, context),
             model={
                 "provider": "openai",
                 "model": "gpt-4o",
-                "temperature": 0.3,  # Lower temperature for more consistent emergency responses
+                "temperature": 0.3,
                 "messages": [{
                     "role": "system",
                     "content": f"""
                     You are an AI emergency response coordinator for the Citizen Assistance Platform. 
                     This is a CRITICAL emergency situation that requires immediate professional response.
 
-                    CALL CONTEXT:
-                    - Reason for call: {call_reason}
-                    {context_info}
+                    EMERGENCY DETAILS:
+                    - Case Reference: {context.get('case_code', 'Not provided')}
+                    - Emergency Type: {call_reason.upper()} EMERGENCY
+                    - Person in Danger: {context.get('reported_by', 'Citizen')}
+                    - Location: {context.get('location', 'Location not specified')}
+                    - Urgency Level: {context.get('urgency_level', 'HIGH')}
+                    - Additional Details: {context.get('additional_notes', 'No additional details')}
 
-                    YOUR ROLE AND INSTRUCTIONS:
-                    1. IMMEDIATELY identify the language of the responder and respond in the same language
-                    2. Clearly state that this is an emergency call from the Citizen Assistance Platform
-                    3. Collect essential information in this order:
-                       - Exact location and address
-                       - Type of emergency (medical, police, fire, other)
-                       - Number of people involved and their condition
-                       - Immediate dangers or hazards present
-                       - Any specific assistance already provided or needed
+                    YOUR PRIMARY MISSION:
+                    You are calling emergency services on behalf of {context.get('reported_by', 'a citizen')} who is in immediate danger. 
+                    You must clearly communicate that this person needs urgent help and request immediate dispatch of appropriate emergency services.
 
-                    4. Speak calmly but with urgency - your tone should be professional and reassuring
-                    5. For medical emergencies: Ask about injuries, medical conditions, consciousness
-                    6. For police emergencies: Ask about safety, weapons, suspects, ongoing threats
-                    7. For fire emergencies: Ask about fire size, trapped people, hazardous materials
-                    8. If the responder seems confused, clarify this is a REAL emergency response call
-                    9. Document all information accurately in the structured output
-                    10. Once critical information is collected, inform them help is being dispatched
-                    11. Provide emergency instructions if needed (CPR, safety measures, etc.)
-                    12. Stay on the line until professional responders confirm they have taken over
+                    SPECIFIC ACTION REQUIRED BASED ON EMERGENCY TYPE:
 
-                    CRITICAL RULES:
-                    - Never panic or raise your voice
-                    - Always verify information for accuracy
-                    - If language barriers exist, use simple clear phrases
-                    - Prioritize life-threatening information first
-                    - Keep responses concise but comprehensive
-                    - Confirm understanding with the responder
+                    MEDICAL EMERGENCY:
+                    - Clearly state: "I'm calling to request immediate medical assistance for {context.get('reported_by', 'a citizen')} who is experiencing a medical emergency"
+                    - Describe the medical situation: "{context.get('additional_notes', 'Medical emergency in progress')}"
+                    - Urgently request: "Please dispatch an ambulance and medical team immediately to {context.get('location', 'the specified location')}"
+                    - Provide critical medical details from the context
 
-                    Remember: Lives may be at stake. Your calm, professional coordination is essential.
+                    POLICE EMERGENCY:
+                    - Clearly state: "I'm calling to request immediate police assistance for {context.get('reported_by', 'a citizen')} who is in danger"
+                    - Describe the security situation: "{context.get('additional_notes', 'Security emergency in progress')}"
+                    - Urgently request: "Please dispatch police units immediately to {context.get('location', 'the specified location')}"
+                    - Mention any threats, weapons, or ongoing dangers
+
+                    FIRE EMERGENCY:
+                    - Clearly state: "I'm calling to report a fire emergency affecting {context.get('reported_by', 'citizens')}"
+                    - Describe the fire situation: "{context.get('additional_notes', 'Fire emergency in progress')}"
+                    - Urgently request: "Please dispatch fire services immediately to {context.get('location', 'the specified location')}"
+                    - Mention trapped individuals, fire size, hazards
+
+                    GENERAL EMERGENCY:
+                    - Clearly state: "I'm calling to request emergency assistance for {context.get('reported_by', 'a citizen')} in distress"
+                    - Describe the situation: "{context.get('additional_notes', 'Emergency situation in progress')}"
+                    - Urgently request: "Please dispatch appropriate emergency services to {context.get('location', 'the specified location')}"
+
+                    CRITICAL COMMUNICATION PROTOCOL:
+                    1. FIRST: Identify yourself as an AI emergency coordinator from Citizen Assistance Platform
+                    2. SECOND: Immediately state that you're calling because a specific person is in danger
+                    3. THIRD: Clearly request the appropriate emergency service dispatch
+                    4. FOURTH: Provide exact location and critical details
+                    5. FIFTH: Answer any follow-up questions from the emergency operator
+
+                    ESSENTIAL INFORMATION TO PROVIDE:
+                    - "This is an automated emergency call on behalf of {context.get('reported_by', 'a citizen')}"
+                    - "The person is at: {context.get('location', 'Unknown location - please check GPS')}"
+                    - "Emergency type: {call_reason.upper()} - {context.get('additional_notes', 'Immediate response required')}"
+                    - "Urgency level: {context.get('urgency_level', 'HIGH')} - Immediate dispatch needed"
+
+                    RESPONSE GUIDELINES:
+                    - Speak with urgency but remain calm and professional
+                    - Immediately establish that this is a real emergency, not a test
+                    - Repeat critical information if necessary (location, person in danger)
+                    - Stay on the line until emergency services confirm they're dispatching help
+                    - Provide any additional details the operator requests
+                    - If transferred to another department, clearly restate the emergency situation
+
+                    Remember: You are the voice for someone in danger. Your clear, urgent communication can save lives.
                     """
                 }]
             },
             voice={
                 "provider": "11labs",
                 "voiceId": "aPfeouerZvEVukwmLSP0",
-                "speed": 1.0,  # Normal speed for clarity
-                "stability": 0.7  # Balanced stability for emergency tone
+                "speed": 1.0,
+                "stability": 0.7
             },
             artifact_plan={
                 "structuredOutputIds": [self.structured_output_id]
             },
-            max_duration_seconds=600,  # 10 minute maximum for emergency calls
-            background_sound="off"  # No background sound for clarity
+            max_duration_seconds=600,
+            background_sound="off"
         )
 
         self.assistant_id = assistant.id
@@ -196,13 +224,16 @@ class EmergencyCallAgent:
 
         return "\n".join(context_parts) if context_parts else "- No additional context provided"
 
-    def _get_emergency_greeting(self, call_reason: str) -> str:
-        """Get appropriate emergency greeting based on call reason."""
+    def _get_emergency_greeting(self, call_reason: str, context: dict) -> str:
+        """Get appropriate emergency greeting that immediately states the emergency."""
+        person = context.get('reported_by', 'A citizen')
+        location = context.get('location', 'an unspecified location')
+
         greetings = {
-            "medical": "Emergency medical response call. This is an urgent medical emergency alert. Please respond immediately.",
-            "police": "Emergency police dispatch call. This is a critical security emergency alert. Please respond immediately.",
-            "fire": "Emergency fire response call. This is a urgent fire emergency alert. Please respond immediately.",
-            "general": "Emergency response call. This is a critical emergency alert from the Citizen Assistance Platform. Please respond immediately."
+            "medical": f"Emergency! I'm calling to request immediate medical assistance for {person} who is experiencing a medical emergency at {location}. This is urgent.",
+            "police": f"Emergency! I'm calling to request immediate police assistance for {person} who is in danger at {location}. This is a security emergency.",
+            "fire": f"Emergency! I'm calling to report a fire emergency affecting {person} at {location}. Fire services are needed immediately.",
+            "general": f"Emergency! I'm calling to request immediate assistance for {person} in distress at {location}. This is an urgent emergency situation."
         }
 
         return greetings.get(call_reason.lower(), greetings["general"])

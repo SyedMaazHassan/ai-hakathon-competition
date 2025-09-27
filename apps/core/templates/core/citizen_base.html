@@ -41,7 +41,15 @@
                         <span class="my-auto">My Requests</span>
                         <i class="bi bi-clock text-lg my-auto ml-2"></i>
                     </a>
-                    
+                        <!-- Logout Button -->
+    <form method="post" action="{% url 'logout' %}" class="inline-block">
+        {% csrf_token %}
+        <button type="submit"
+            class="flex items-center px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition">
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            Logout
+        </button>
+    </form>
                 </div>
             </div>
             </div>

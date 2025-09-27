@@ -210,25 +210,25 @@
                   <span class="flex-1">All Requests</span>
                 </a>
 
-                <a href="{% url "appointments" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'appointments' in request.path %}
-                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
-                   {% else %}
-                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-                   {% endif %}">
-                  <i class="fas fa-calendar-check w-5 mr-3 text-center {% if 'appointments' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">Appointments</span>
-                </a>
+<!--                <a href="{% url "appointments" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors-->
+<!--                   {% if 'appointments' in request.path %}-->
+<!--                     bg-menu-active text-white dark:bg-dark-hover dark:text-white-->
+<!--                   {% else %}-->
+<!--                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white-->
+<!--                   {% endif %}">-->
+<!--                  <i class="fas fa-calendar-check w-5 mr-3 text-center {% if 'appointments' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>-->
+<!--                  <span class="flex-1">Appointments</span>-->
+<!--                </a>-->
 
-                <a href="{% url "analytics" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'analytics' in request.path %}
-                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
-                   {% else %}
-                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-                   {% endif %}">
-                  <i class="fas fa-chart-line w-5 mr-3 text-center {% if 'analytics' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">Analytics</span>
-                </a>
+<!--                <a href="{% url "analytics" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors-->
+<!--                   {% if 'analytics' in request.path %}-->
+<!--                     bg-menu-active text-white dark:bg-dark-hover dark:text-white-->
+<!--                   {% else %}-->
+<!--                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white-->
+<!--                   {% endif %}">-->
+<!--                  <i class="fas fa-chart-line w-5 mr-3 text-center {% if 'analytics' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>-->
+<!--                  <span class="flex-1">Analytics</span>-->
+<!--                </a>-->
 
                 <a href="{% url "depts:emergency-calls" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
                    {% if 'calls' in request.path %}
@@ -242,31 +242,36 @@
             </nav>
             <div class="mt-4 px-3 text-xs text-gray-500 font-medium dark:text-gray-400">Quick Actions</div>
             <nav class="mt-2 px-2 space-y-1">
-                <a href="{% url 'jobs:job_create' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-                   {% if 'jobs/jobs/new/' in request.path %}
-                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
-                   {% else %}
-                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-                   {% endif %}">
-                  <i class="fas fa-plus-circle w-5 mr-3 text-center {% if 'jobs/jobs/new/' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
-                  <span class="flex-1">New Request</span>
-                </a>
+<!--                <a href="{% url 'jobs:job_create' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors-->
+<!--                   {% if 'jobs/jobs/new/' in request.path %}-->
+<!--                     bg-menu-active text-white dark:bg-dark-hover dark:text-white-->
+<!--                   {% else %}-->
+<!--                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white-->
+<!--                   {% endif %}">-->
+<!--                  <i class="fas fa-plus-circle w-5 mr-3 text-center {% if 'jobs/jobs/new/' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>-->
+<!--                  <span class="flex-1">New Request</span>-->
+<!--                </a>-->
 
-                <a href="{% url 'logout' %}"
-   class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
-          {% if 'logout' in request.path %}
-            bg-menu-active text-white dark:bg-dark-hover dark:text-white
-          {% else %}
-            text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
-          {% endif %}">
-  <i class="fas fa-sign-out-alt w-5 mr-3 text-center
+<form method="post" action="{% url 'logout' %}" class="w-full">
+    {% csrf_token %}
+    <button type="submit"
+        class="group flex items-center w-full p-3 mb-1 text-sm font-medium rounded-full transition-colors
+               {% if 'logout' in request.path %}
+                 bg-menu-active text-white dark:bg-dark-hover dark:text-white
+               {% else %}
+                 text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+               {% endif %}">
+        <i class="fas fa-sign-out-alt w-5 mr-3 text-center
             {% if 'logout' in request.path %}
               text-white dark:text-white
             {% else %}
               text-menu-icon dark:text-dark-text
             {% endif %}"></i>
-  <span class="flex-1">Logout</span>
-</a>
+        <span class="flex-1 text-left">Logout</span>
+    </button>
+</form>
+
+
 
             </nav>
             <div class="absolute bottom-0 left-0 right-0 p-4">
