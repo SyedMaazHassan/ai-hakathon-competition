@@ -1,22 +1,9 @@
 
 
 from django.conf import settings
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib import messages
-from django.shortcuts import redirect
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import update_session_auth_hash
-from django.utils import timezone
-from django.db.models import Count, Avg, Q, F
-from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from datetime import timedelta
-from apps.depts.models import (
-    CitizenRequest, ActionLog, Department, DepartmentEntity,
-    CitizenRequestAssignment, EmergencyCall, Appointment
-)
 
 from django.http import JsonResponse
 from django.views.generic import TemplateView
@@ -330,10 +317,10 @@ class SubmitEmergencyRequestView(View):
         return super().dispatch(*args, **kwargs)
 
     def get(self, request):
-        # Pass Google Maps API key to template
         context = {
             'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
         }
+        print("Context: ", context)
         return render(request, 'core/emergency_request_form.html', context)
 
     def post(self, request):
@@ -344,11 +331,11 @@ class SubmitEmergencyRequestView(View):
             description = request.POST.get('description')
             latitude = request.POST.get('latitude')
             longitude = request.POST.get('longitude')
-
+            print("Data: ", request.POST)
             # Validate required fields (emergency_type is optional)
             if not all([location, description, latitude, longitude]):
                 messages.error(request, 'Please fill in all required fields.')
-                return render(request, 'emergency_request_form.html')
+                return render(request, 'core/emergency_request_form.html')
 
             # Generate unique case code
             case_code = self.generate_case_code()
@@ -392,7 +379,7 @@ class SubmitEmergencyRequestView(View):
 
         except Exception as e:
             messages.error(request, 'An error occurred while submitting your request. Please try again.')
-            return render(request, 'emergency_request_form.html')
+            return render(request, 'core/emergency_request_form.html')
 
     def generate_case_code(self):
         """Generate unique case code like C-ABC123XY"""
@@ -427,3 +414,66 @@ class SubmitEmergencyRequestView(View):
 class EmergencyRequestSuccessView(View):
     def get(self, request):
         return render(request, 'emergency_request_success.html')
+
+
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+
+class MyEmergencyRequestsView(LoginRequiredMixin, ListView):
+    model = CitizenRequest
+    template_name = 'core/my_emergency_requests.html'
+    context_object_name = 'requests'
+
+    def get_queryset(self):
+        # Get only requests for the current logged-in user, ordered by latest first
+        print("User EMail: ", self.request.user)
+        return CitizenRequest.objects.filter(user=self.request.user).select_related(
+            'assigned_department', 'assigned_entity'
+        ).prefetch_related('actions', 'appointments').order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Add additional context if needed
+        context['total_requests'] = self.get_queryset().count()
+        context['resolved_requests'] = self.get_queryset().filter(status='RESOLVED').count()
+        context['in_progress_requests'] = self.get_queryset().filter(status='IN_PROGRESS').count()
+
+        return context
+
+
+from django.views.generic import DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+
+
+class DetailRequestView(LoginRequiredMixin, DetailView):
+    model = CitizenRequest
+    template_name = 'core/request_detail.html'
+    context_object_name = 'citizen_request'
+
+    def get_queryset(self):
+        # Ensure users can only see their own requests
+        return CitizenRequest.objects.filter(user=self.request.user)
+
+    def get_object(self, queryset=None):
+        # Get by case_code from URL parameter
+        case_code = self.request.GET.get('case_code')
+        if case_code:
+            return get_object_or_404(self.get_queryset(), case_code=case_code)
+        return super().get_object(queryset)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        request_obj = self.object
+
+        # Get related data
+        context['actions'] = ActionLog.objects.filter(citizen_request=request_obj).order_by('created_at')
+        context['appointments'] = Appointment.objects.filter(citizen_request=request_obj).order_by('-scheduled_at')
+        context['emergency_calls'] = EmergencyCall.objects.filter(citizen_request=request_obj)
+
+        # Get the latest appointment
+        context['latest_appointment'] = context['appointments'].first()
+
+        return context

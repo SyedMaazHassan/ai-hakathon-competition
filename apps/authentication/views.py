@@ -3,6 +3,10 @@ from django.contrib.auth import login
 from .forms import SignupForm
 from django.contrib.auth.views import PasswordResetView
 from django.contrib.auth import get_user_model
+# In your views.py
+from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+from .forms import EmailLoginForm  # Custom login form
 
 User = get_user_model()  # Dynamically get the user model
 
@@ -22,4 +26,13 @@ def signup(request):
     return render(request, "authentication/signup.html", {"form": form})
 
 
+class CustomLoginView(LoginView):
+    template_name = "authentication/login.html"
+    authentication_form = EmailLoginForm
 
+    def get_success_url(self):
+        # Check if user is admin/staff
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return '/'  # Redirect admins to dashboard
+        else:
+            return '/emergency-request/'  # Redirect citizens to emergency request page

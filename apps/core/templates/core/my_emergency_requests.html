@@ -1,0 +1,124 @@
+{% extends 'core/citizen_base.html' %}
+{% load static %}
+
+{% block title %}My Emergency Requests{% endblock %}
+
+{% block citizen_block %}
+<div class="flex justify-center mt-2">
+    <div class="w-full max-w-xl px-4 sm:px-0">
+
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-800">
+                Your Recent Requests
+            </h2>
+            <div class="text-sm text-gray-600">
+                Total: {{ total_requests }} • Resolved: {{ resolved_requests }} • In Progress: {{ in_progress_requests }}
+            </div>
+        </div>
+
+        {% if requests %}
+            {% for request in requests %}
+            <div class="bg-white p-5 border border-gray-200 rounded-xl shadow-lg mb-6">
+                <div class="flex justify-between items-start mb-3">
+
+                    <div class="flex items-center space-x-3">
+                        <div class="h-10 w-10 rounded-full
+                            {% if request.category == 'HEALTH' %}bg-pink-100
+                            {% elif request.category == 'POLICE' %}bg-blue-100
+                            {% elif request.category == 'FIRE' %}bg-orange-100
+                            {% elif request.category == 'GOVT' %}bg-green-100
+                            {% else %}bg-gray-100{% endif %}
+                            flex items-center justify-center flex-shrink-0">
+                            <i class="
+                                {% if request.category == 'HEALTH' %}bi bi-heart-fill text-xl text-red-500
+                                {% elif request.category == 'POLICE' %}bi bi-shield-fill text-xl text-blue-500
+                                {% elif request.category == 'FIRE' %}bi bi-fire text-xl text-orange-500
+                                {% elif request.category == 'GOVT' %}bi bi-building text-xl text-green-500
+                                {% else %}bi bi-question-circle text-xl text-gray-500{% endif %}">
+                            </i>
+                        </div>
+                        <div>
+                            <p class="text-lg font-semibold text-gray-800 leading-none">{{ request.case_code }}</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ request.created_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full
+                        {% if request.status == 'RESOLVED' %}bg-green-100 text-green-700
+                        {% elif request.status == 'IN_PROGRESS' %}bg-yellow-100 text-yellow-700
+                        {% elif request.status == 'ASSIGNED' %}bg-blue-100 text-blue-700
+                        {% elif request.status == 'SUBMITTED' %}bg-gray-100 text-gray-700
+                        {% else %}bg-gray-100 text-gray-700{% endif %}
+                        uppercase">
+                        {{ request.get_status_display }}
+                    </span>
+                </div>
+
+                <p class="text-gray-700 text-sm mb-4 font-medium">
+                    {{ request.request_text|truncatewords:20 }}
+                </p>
+
+                {% if request.assigned_entity %}
+                <div class="flex items-center text-gray-600 mb-4 text-sm">
+                    <i class="bi bi-building text-base mr-2 flex-shrink-0 w-4"></i>
+                    <span class="font-medium">{{ request.assigned_entity.name }}</span>
+                </div>
+                {% endif %}
+
+                {% with request.appointments.first as appointment %}
+                {% if appointment and appointment.status == 'SCHEDULED' %}
+                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
+                    <div class="flex items-center text-blue-700 text-sm">
+                        <i class="bi bi-calendar-check-fill text-lg mr-2 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-semibold leading-tight">{{ appointment.scheduled_at|date:"l, f A" }}</p>
+                            <p class="text-xs leading-tight">
+                                {% if appointment.entity %}{{ appointment.entity.name }}{% else %}{{ appointment.department.name }}{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <div class="flex items-center space-x-1">
+                        {% with action_count=request.actions.count %}
+                        {% if action_count > 0 %}
+                            {% for i in "123" %}
+                                {% if forloop.counter <= action_count %}
+                                <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-xs text-gray-600 ml-1">{{ action_count }} action{{ action_count|pluralize }}</span>
+                        {% else %}
+                            <span class="text-xs text-gray-600">No actions yet</span>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <a href="{% url 'request_complete' %}?case_code={{ request.case_code }}"
+                       class="btn text-blue-600 font-semibold hover:text-blue-700 text-sm transition">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="bg-white p-8 border border-gray-200 rounded-xl shadow-lg text-center">
+                <div class="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="bi bi-inbox text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">No Requests Yet</h3>
+                <p class="text-gray-600 mb-4">You haven't submitted any emergency requests yet.</p>
+                <a href="{% url 'submit_emergency_request' %}"
+                   class="inline-flex items-center px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-orange-600 transition">
+                    <i class="bi bi-plus-circle mr-2"></i>Submit Your First Request
+                </a>
+            </div>
+        {% endif %}
+        
+    </div>
+</div>
+
+{% endblock citizen_block %}
