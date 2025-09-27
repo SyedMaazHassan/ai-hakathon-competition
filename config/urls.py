@@ -26,6 +26,7 @@ urlpatterns = [
     path('auth/', include('apps.authentication.urls')),
     path("hiring/", include("apps.hiring.urls", namespace="hiring")),
     path("jobs/", include("apps.jobs.urls", namespace="jobs")),
+    path('', include("apps.depts.urls", namespace="depts_urls"))
 ]
 
 

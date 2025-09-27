@@ -1,0 +1,300 @@
+{% extends "core/new_base.html" %}
+{% load static %}
+{% block title %}Emergency Calls{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Emergency Calls</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-1">Manage and monitor all emergency call responses</p>
+</div>
+
+<div class="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border shadow-sm">
+    <!-- Header with search and filters -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="relative flex-1 max-w-md">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <form method="get" class="flex gap-2">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        value="{{ request.GET.search }}"
+                        class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent dark:bg-dark-bg dark:border-dark-border dark:text-white" 
+                        placeholder="Search by case code, department, or status..."
+                    >
+                    <button type="submit" class="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-orange-600 transition-colors">
+                        Search
+                    </button>
+                </form>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ paginator.count }} call{{ paginator.count|pluralize }}
+                </span>
+                {% if request.GET.search %}
+                <a href="{% url 'emergency_calls' %}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1">
+                    <i class="fas fa-times"></i>
+                    Clear filters
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Calls Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 dark:bg-dark-hover text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                <tr>
+                    <th class="px-6 py-3">Case Code</th>
+                    <th class="px-6 py-3">Department</th>
+                    <th class="px-6 py-3">Phone Number</th>
+                    <th class="px-6 py-3">Status</th>
+                    <th class="px-6 py-3">Initiated</th>
+                    <th class="px-6 py-3">Responded</th>
+                    <th class="px-6 py-3">Duration</th>
+                    <th class="px-6 py-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-dark-border">
+                {% for call in calls %}
+                <tr class="hover:bg-gray-50 dark:hover:bg-dark-hover transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                            {{ call.citizen_request.case_code|default:"N/A" }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Call #{{ call.call_id|default:call.id }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                                <i class="fas fa-building text-red-600 dark:text-red-400 text-xs"></i>
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                    {{ call.department.name|default:"Unknown Department" }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 dark:text-white">
+                            {{ call.phone_number|default:"N/A" }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if call.status == 'dispatched' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                <i class="fas fa-paper-plane mr-1"></i> Dispatched
+                            </span>
+                        {% elif call.status == 'in_progress' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                <i class="fas fa-running mr-1"></i> In Progress
+                            </span>
+                        {% elif call.status == 'completed' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                <i class="fas fa-check-circle mr-1"></i> Completed
+                            </span>
+                        {% elif call.status == 'answered' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                <i class="fas fa-phone-alt mr-1"></i> Answered
+                            </span>
+                        {% elif call.status == 'cancelled' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                <i class="fas fa-ban mr-1"></i> Cancelled
+                            </span>
+                        {% elif call.status == 'failed' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                <i class="fas fa-times-circle mr-1"></i> Failed
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                                {{ call.status|default:"Unknown" }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-clock text-xs"></i>
+                            {{ call.initiated_at|date:"M d, Y H:i" }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {% if call.answered_at %}
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-check text-xs text-green-500"></i>
+                                {{ call.answered_at|date:"M d, Y H:i" }}
+                            </div>
+                        {% else %}
+                            <span class="text-yellow-500 flex items-center gap-1">
+                                <i class="fas fa-clock text-xs"></i>
+                                Pending
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {% if call.duration_seconds %}
+                            <span class="inline-flex items-center gap-1">
+                                <i class="fas fa-stopwatch text-xs"></i>
+                                {{ call.duration_seconds }}s
+                            </span>
+                        {% else %}
+                            <span class="text-gray-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex justify-end gap-2">
+                            <a href="/" class="text-brand-primary hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            {% if call.status != 'completed' and call.status != 'cancelled' %}
+                            <a href="/" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 ml-3">
+                                <i class="fas fa-edit"></i> Update
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-phone-slash text-4xl mb-3"></i>
+                            <p class="text-lg font-medium">No emergency calls found</p>
+                            <p class="mt-1">
+                                {% if request.GET.search %}
+                                    Try adjusting your search criteria
+                                {% else %}
+                                    There are no emergency calls at the moment
+                                {% endif %}
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="px-6 py-4 border-t border-gray-200 dark:border-dark-border">
+        <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700 dark:text-gray-400">
+                Showing page {{ page_obj.number }} of {{ paginator.num_pages }}
+            </div>
+            <div class="flex gap-1">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                       class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                       class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% else %}
+                    <span class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                        <i class="fas fa-angle-double-left"></i>
+                    </span>
+                    <span class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                        <i class="fas fa-angle-left"></i>
+                    </span>
+                {% endif %}
+
+                {% for num in paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-1 rounded border border-brand-primary bg-brand-primary text-white">
+                            {{ num }}
+                        </span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                           class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover">
+                            {{ num }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                       class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                       class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-hover">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% else %}
+                    <span class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                        <i class="fas fa-angle-right"></i>
+                    </span>
+                    <span class="px-3 py-1 rounded border border-gray-300 dark:border-dark-border text-gray-400 dark:text-gray-600 cursor-not-allowed">
+                        <i class="fas fa-angle-double-right"></i>
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats Section -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+    <div class="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <i class="fas fa-paper-plane text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Dispatched</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ dispatched_count }}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 h-10 w-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                <i class="fas fa-running text-orange-600 dark:text-orange-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">In Progress</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ in_progress_count }}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 h-10 w-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-600 dark:text-green-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ completed_count }}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-dark-card rounded-lg border border-gray-200 dark:border-dark-border p-4">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 h-10 w-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+                <i class="fas fa-phone-alt text-red-600 dark:text-red-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Answered</p>
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ answered_count }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
