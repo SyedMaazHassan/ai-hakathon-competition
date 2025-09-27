@@ -69,17 +69,16 @@ services:
     volumes:
       - ./staticfiles:/app/staticfiles
       - ./media:/app/media
-      - /etc/letsencrypt/live/frontline.hirofly.com/fullchain.pem:/etc/ssl/private/origin.crt:ro
-      - /etc/letsencrypt/live/frontline.hirofly.com/privkey.pem:/etc/ssl/private/origin.key:ro
+      - /home/ubuntu/certs:/etc/ssl/private:ro
     depends_on:
       - web
 
   db:  # PostgreSQL database
     image: postgres:15
     environment:
-      POSTGRES_USER: django
-      POSTGRES_PASSWORD: django
-      POSTGRES_DB: django_db
+      POSTGRES_USER: hire_with_ai
+      POSTGRES_PASSWORD: hire_with_ai
+      POSTGRES_DB: hire_with_ai
     ports:
       - "5432:5432"
     volumes:
