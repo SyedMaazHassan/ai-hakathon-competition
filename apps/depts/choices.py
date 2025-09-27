@@ -1,4 +1,5 @@
 from django.db import models
+from enum import Enum
 
 class Province(models.TextChoices):
     PUNJAB = "punjab", "Punjab"
@@ -32,6 +33,23 @@ class DepartmentCategory(models.TextChoices):
     TRAFFIC_POLICE = "traffic_police", "Traffic Police"
     CYBERCRIME = "cybercrime", "Cybercrime"
     DISASTER_MGMT = "disaster_mgmt", "Disaster Management"
+
+class DepartmentCategoryEnum(Enum):
+    POLICE = "police", "Police"
+    FIRE_BRIGADE = "fire_brigade", "Fire Brigade"
+    AMBULANCE = "ambulance", "Ambulance/Medical Emergency"
+    SEWERAGE = "sewerage", "Sewerage & Water"
+    ELECTRICITY = "electricity", "Electricity"
+    GAS = "gas", "Gas Company"
+    BOMB_DISPOSAL = "bomb_disposal", "Bomb Disposal"
+    NADRA = "nadra", "NADRA"
+    HEALTH = "health", "Health Department"
+    MUNICIPAL = "municipal", "Municipal Services"
+    TRAFFIC_POLICE = "traffic_police", "Traffic Police"
+    CYBERCRIME = "cybercrime", "Cybercrime"
+    DISASTER_MGMT = "disaster_mgmt", "Disaster Management"
+
+
 
 class UrgencyLevel(models.TextChoices):
     LOW = "low", "Low Priority"
