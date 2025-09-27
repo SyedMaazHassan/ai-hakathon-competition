@@ -266,3 +266,11 @@ def EmergencyCallsView(request):
 
 def CitizenPageView(request):
     return render(request, 'core/citizen_page.html')
+
+def YourRequests(request):
+    return render(request, 'core/your_requests.html')
+
+def RequestComplete(request):
+    return render(request, 'core/request_complete.html')
+
+

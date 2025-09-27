@@ -10,5 +10,8 @@ urlpatterns = [
     path('analytics/', views.AnalyticsView, name='analytics'),
     path('emergency-calls/', views.EmergencyCallsView, name='emergency_calls'),
     path('citizen-page/', views.CitizenPageView, name='citizen_page'),
+    path('your-requests/', views.YourRequests, name='your_requests'),
+    path('request-complete/', views.RequestComplete, name='request_complete'),
+    
     path('  ', views.UpdateProfileView.as_view(), name='profile'),
 ]
