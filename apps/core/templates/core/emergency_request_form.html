@@ -10,7 +10,6 @@
     <div class="w-full max-w-xl px-4 sm:px-0">
         <form method="POST" action="{% url 'submit_emergency_request' %}" id="emergency-form">
             {% csrf_token %}
-
             <div class="flex justify-start">
                 <h2 class="text-xl font-semibold text-gray-800 mb-6">
                     Select Emergency Type (Optional)
@@ -138,73 +137,74 @@
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         <div class="flex justify-between items-center p-6 border-b border-gray-200">
             <h3 class="text-xl font-semibold text-gray-800">Select Your Location</h3>
-            <button onclick="closeMapModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
-                close
-            </button>
-        </div>
-
-        <div class="p-6">
-            <div class="mb-4">
-                <div class="relative">
-                    <input type="text"
-                           id="map-search"
-                           placeholder="Search for a location..."
-                           class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
-                    <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
-                </div>
-            </div>
-
-            <div id="map" class="w-full h-96 rounded-lg border border-gray-300"></div>
-
-            <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center">
-                        <i class="fas fa-info-circle text-brand-primary mr-2"></i>
-                        <span class="font-medium">Selected Location:</span>
-                    </div>
-                    <button onclick="useCurrentLocation()" class="text-sm text-brand-primary hover:text-orange-600 flex items-center">
-                        <i class="fas fa-crosshairs mr-1"></i> Use Current Location
-                    </button>
-                </div>
-                <p id="selected-address" class="text-gray-600 mb-2">Drag the marker to adjust your location</p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <span class="text-sm text-gray-500">Latitude:</span>
-                        <span id="selected-lat" class="font-mono block">0.0000</span>
-                    </div>
-                    <div>
-                        <span class="text-sm text-gray-500">Longitude:</span>
-                        <span id="selected-lng" class="font-mono block">0.0000</span>
-                    </div>
-                </div>
-
-                <!-- Add this new button section -->
-                <div class="mt-4 pt-4 border-t border-gray-200">
+                            <!-- Add this new button section -->
+                <div class="">
                     <button id="save-location-btn"
                             onclick="saveAndCloseLocation()"
-                            class="w-full py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition flex items-center justify-center">
+                            class="w-full px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition flex items-center justify-center">
                         <i class="fas fa-check-circle mr-2"></i>
                         Save This Location & Close
                     </button>
-                    <p class="text-xs text-gray-500 mt-2 text-center">Click to save the selected location and close the map</p>
                 </div>
-            </div>
         </div>
 
-        <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
-            <button onclick="closeMapModal()"
-                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
-                Cancel
-            </button>
-            <button id="confirm-location-btn"
-                    onclick="confirmLocation()"
-                    disabled
-                    class="px-6 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed transition">
-                Confirm Location
-            </button>
+<div class="p-6 overflow-y-auto max-h-[70vh]">
+    <div class="mb-4">
+        <div class="relative">
+            <input type="text"
+                   id="map-search"
+                   placeholder="Search for a location..."
+                   class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-brand-primary focus:border-brand-primary">
+            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
         </div>
     </div>
+
+    <div id="map" class="w-full h-96 rounded-lg border border-gray-300"></div>
+
+    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center">
+                <i class="fas fa-info-circle text-brand-primary mr-2"></i>
+                <span class="font-medium">Selected Location:</span>
+            </div>
+            <button onclick="useCurrentLocation()" class="text-sm text-brand-primary hover:text-orange-600 flex items-center">
+                <i class="fas fa-crosshairs mr-1"></i> Use Current Location
+            </button>
+        </div>
+        <p id="selected-address" class="text-gray-600 mb-2">Drag the marker to adjust your location</p>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <span class="text-sm text-gray-500">Latitude:</span>
+                <span id="selected-lat" class="font-mono block">0.0000</span>
+            </div>
+            <div>
+                <span class="text-sm text-gray-500">Longitude:</span>
+                <span id="selected-lng" class="font-mono block">0.0000</span>
+            </div>
+        </div>
+    </div>
+            <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
+            <button onclick="closeMapModal()"
+                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                Close
+            </button>
+            <button id="save-location-btn"
+                    onclick="saveAndCloseLocation()"
+                    class="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition flex items-center justify-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                Save
+            </button>
+        </div>
 </div>
+
+
+
+    </div>
+</div>
+
+
+
+
 
 <!-- Success Modal -->
 <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -614,32 +614,6 @@
         showLocationSuccess();
     }
 
-    function confirmLocation() {
-        console.log('Confirming location...');
-        if (!marker) {
-            console.error('Marker not available');
-            return;
-        }
-
-        const position = marker.getPosition();
-        const lat = position.lat();
-        const lng = position.lng();
-        const address = document.getElementById('selected-address').textContent;
-
-        console.log('Setting location values:', { lat, lng, address });
-
-        document.getElementById('location-input').value = address;
-        document.getElementById('latitude-input').value = lat;
-        document.getElementById('longitude-input').value = lng;
-        document.getElementById('location-display').textContent = address;
-
-        // Close modal immediately after selection
-        closeMapModal();
-        checkFormValidity();
-
-        // Show success feedback
-        showLocationSuccess();
-    }
 
     function showLocationSuccess() {
         const locationDisplay = document.getElementById('location-display');
