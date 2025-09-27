@@ -1,0 +1,215 @@
+{% extends 'core/citizen_base.html' %}
+
+{% block citizen_block %}
+<div class="flex justify-center mt-2">
+    <div class="w-full max-w-xl px-4 sm:px-0">
+        
+        <div class="flex justify-start">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                Select Emergency Type
+            </h2>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div id="health-card" 
+                 class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                 onclick="selectCard(this)"
+                 data-type="health"
+                 data-selected="false"
+                 style="height: 120px;">
+                <i class="bi bi-heart-fill text-3xl mb-1 text-white"></i>
+                <span class="font-semibold text-center text-sm">Health Emergency</span>
+            </div>
+
+            <div id="police-card" 
+                 class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                 onclick="selectCard(this)"
+                 data-type="police"
+                 data-selected="false"
+                 style="height: 120px;">
+                <i class="bi bi-shield-fill text-3xl mb-1 text-gray-700"></i>
+                <span class="font-semibold text-center text-sm text-gray-700">Police Emergency</span>
+            </div>
+
+            <div id="fire-card" 
+                 class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                 onclick="selectCard(this)"
+                 data-type="fire"
+                 data-selected="false"
+                 style="height: 120px;">
+                <i class="bi bi-fire text-3xl mb-1 text-gray-700"></i>
+                <span class="font-semibold text-center text-sm text-gray-700">Fire Emergency</span>
+            </div>
+
+            <div id="govt-card" 
+                 class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
+                 onclick="selectCard(this)"
+                 data-type="govt"
+                 data-selected="false"
+                 style="height: 120px;">
+                <i class="bi bi-building text-3xl mb-1 text-gray-700"></i>
+                <span class="font-semibold text-center text-sm text-gray-700">Government Services</span>
+            </div>
+            
+        </div>
+
+        <div class="mt-8">
+            <h3 class="text-sm font-medium text-gray-600 mb-2">Your Location</h3>
+            <div class="flex justify-between items-center p-3 border border-gray-300 rounded-lg bg-white">
+                <span class="flex items-center text-gray-800">
+                    <i class="bi bi-geo-alt-fill text-red-500 mr-2"></i>
+                    <span>Gulberg III, Lahore</span>
+                </span>
+                <button class="text-blue-600 font-semibold hover:text-blue-700 transition">
+                    Change
+                </button>
+            </div>
+        </div>
+
+
+
+        <div class="mt-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Describe Your Emergency</h3>
+            
+                <div class="relative">
+                    <textarea id="emergency-description" 
+                            rows="4" 
+                            class="w-full p-4 pr-10 border border-gray-300 rounded-xl focus:ring-red-500 focus:border-red-500 transition resize-none"
+                            placeholder="Describe your emergency in detail..."></textarea>
+                    
+                    <button type="button" 
+                            class="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600 transition">
+                        <i class="bi bi-mic-fill text-xl"></i>
+                    </button>
+                    
+                    </div>
+
+                <p class="text-xs text-gray-500 mt-1">
+                    Your description helps us send the right help quickly.
+                </p>
+
+                <div class="flex items-center bg-yellow-50 p-3 mt-3 rounded-lg border border-yellow-200">
+                    <i class="bi bi-lightbulb-fill text-yellow-500 mr-2"></i>
+                    <p class="text-sm text-gray-700">
+                        <span class="font-semibold">Example:</span> "Heart attack at home, need immediate help"
+                    </p>
+                </div>
+        </div>
+        
+        <div class="mt-8 text-center">
+            
+            <button id="submit-request-btn"
+                    type="submit"
+                    disabled
+                    class="w-full py-3 rounded-xl flex items-center justify-center font-bold text-lg transition duration-300
+                           bg-gray-300 text-gray-500 cursor-not-allowed">
+                <i class="bi bi-send-fill mr-2"></i>
+                Submit Emergency Request
+            </button>
+            <hr class="my-3"/>
+            
+            <p class="text-sm text-gray-600 mb-3">For immediate life-threatening emergencies:</p>
+            <a href="tel:1122" 
+               class="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold bg-pink-100 text-red-600 border border-red-300 hover:bg-pink-200 transition">
+                <i class="bi bi-telephone-fill mr-2"></i>
+                Call 1122
+            </a>
+            
+        </div>
+        
+
+    </div>
+</div>
+
+{% endblock citizen_block %}
+
+{% block extra_js %}
+<script>
+    // --- Card Selection Logic (Unchanged from previous response) ---
+    const COLOR_MAP = {
+        'health': { bg_selected: 'bg-red-600 border-red-600', },
+        'police': { bg_selected: 'bg-blue-600 border-blue-600', },
+        'fire': { bg_selected: 'bg-yellow-500 border-yellow-500', },
+        'govt': { bg_selected: 'bg-green-600 border-green-600', }
+    };
+    
+    const UNSELECTED_CLASSES = 'bg-white border-gray-300 shadow-sm hover:bg-gray-50';
+    const ICON_SELECTED_CLASSES = 'text-white';
+    const TEXT_SELECTED_CLASSES = 'text-white';
+    const ICON_UNSELECTED_CLASSES = 'text-gray-700';
+    const TEXT_UNSELECTED_CLASSES = 'text-gray-700';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.emergency-card');
+        cards.forEach(card => {
+            const isSelected = card.getAttribute('data-selected') === 'true';
+            updateCardStyle(card, isSelected);
+        });
+        
+        // --- NEW: Initialize button state on load ---
+        checkTextareaContent();
+    });
+
+    function selectCard(clickedCard) {
+        const cards = document.querySelectorAll('.emergency-card');
+        cards.forEach(card => {
+            if (card === clickedCard) {
+                card.setAttribute('data-selected', 'true');
+                updateCardStyle(card, true);
+            } else {
+                card.setAttribute('data-selected', 'false');
+                updateCardStyle(card, false);
+            }
+        });
+    }
+
+    function updateCardStyle(card, isSelected) {
+        const icon = card.querySelector('i');
+        const text = card.querySelector('span');
+        const cardType = card.getAttribute('data-type');
+        const typeSelectedClasses = COLOR_MAP[cardType] ? COLOR_MAP[cardType].bg_selected : '';
+
+        if (isSelected) {
+            card.classList.remove(...UNSELECTED_CLASSES.split(' '));
+            card.classList.add(...typeSelectedClasses.split(' '), 'shadow-lg');
+        } else {
+            const previousSelectedClasses = COLOR_MAP[cardType] ? COLOR_MAP[cardType].bg_selected.split(' ') : [];
+            card.classList.remove(...previousSelectedClasses, 'shadow-lg');
+            card.classList.add(...UNSELECTED_CLASSES.split(' '), 'shadow-md');
+        }
+
+        icon.classList.remove(...(isSelected ? ICON_UNSELECTED_CLASSES.split(' ') : ICON_SELECTED_CLASSES.split(' ')));
+        icon.classList.add(...(isSelected ? ICON_SELECTED_CLASSES.split(' ') : ICON_UNSELECTED_CLASSES.split(' ')));
+
+        text.classList.remove(...(isSelected ? TEXT_UNSELECTED_CLASSES.split(' ') : TEXT_SELECTED_CLASSES.split(' ')));
+        text.classList.add(...(isSelected ? TEXT_SELECTED_CLASSES.split(' ') : TEXT_UNSELECTED_CLASSES.split(' ')));
+    }
+    
+    // --- NEW: Submit Button Enable/Disable Logic ---
+    
+    const descriptionTextarea = document.getElementById('emergency-description');
+    const submitButton = document.getElementById('submit-request-btn');
+
+    // Function to check content and toggle button state
+    function checkTextareaContent() {
+        const hasContent = descriptionTextarea.value.trim().length > 0;
+        
+        if (hasContent) {
+            // Enable button: Red background, white text, clickable cursor
+            submitButton.disabled = false;
+            submitButton.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            submitButton.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700');
+        } else {
+            // Disable button: Gray background, gray text, not-allowed cursor
+            submitButton.disabled = true;
+            submitButton.classList.remove('bg-red-600', 'text-white', 'hover:bg-red-700');
+            submitButton.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+        }
+    }
+
+    // Attach event listener to the textarea
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', checkTextareaContent);
+    }
+</script>
+{% endblock extra_js %}

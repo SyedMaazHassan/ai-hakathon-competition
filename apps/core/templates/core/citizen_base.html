@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Emergency Services{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <nav class="bg-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="flex justify-between items-center h-16 max-w-xl mx-auto"> 
+                
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center space-x-2">
+                        <div class="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
+                            <i class="bi bi-exclamation-circle-fill text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <span class="text-xl font-bold text-gray-900 leading-none">Emergency Services</span>
+                            <p class="text-xs text-gray-500 leading-none">AI-Powered Help</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    
+                    <div class="flex items-center space-x-1.5 p-2 bg-gray-100 rounded-lg text-gray-700 font-medium cursor-pointer hover:bg-gray-200 transition">
+                        <i class="bi bi-translate text-base"></i>
+                        <span class="text-base">اردو</span>
+                    </div>
+
+                    <button class="p-2 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        <i class="bi bi-clock text-2xl"></i>
+                    </button>
+                    
+                </div>
+            </div>
+            </div>
+    </nav>
+    <main class="max-w-xl mx-auto py-6 px-4 sm:px-6 lg:px-8"> 
+        {% block citizen_block %}
+        {% endblock citizen_block %}
+    </main>
+
+    {% block footer %}{% endblock %}
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

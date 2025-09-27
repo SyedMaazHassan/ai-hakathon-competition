@@ -9,5 +9,6 @@ urlpatterns = [
     path('appointments/', views.AppointmentsView, name='appointments'),
     path('analytics/', views.AnalyticsView, name='analytics'),
     path('emergency-calls/', views.EmergencyCallsView, name='emergency_calls'),
+    path('citizen-page/', views.CitizenPageView, name='citizen_page'),
     path('  ', views.UpdateProfileView.as_view(), name='profile'),
 ]

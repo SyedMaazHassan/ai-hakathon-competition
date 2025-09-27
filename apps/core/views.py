@@ -263,3 +263,6 @@ def AnalyticsView(request):
 
 def EmergencyCallsView(request):
     return render(request, 'core/emergency_calls.html')
+
+def CitizenPageView(request):
+    return render(request, 'core/citizen_page.html')
