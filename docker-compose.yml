@@ -69,7 +69,8 @@ services:
     volumes:
       - ./staticfiles:/app/staticfiles
       - ./media:/app/media
-      - /home/ubuntu/certs:/etc/ssl/private:ro
+      - /etc/letsencrypt/archive/frontline.hirofly.com/fullchain1.pem:/etc/ssl/private/origin.crt:ro
+      - /etc/letsencrypt/archive/frontline.hirofly.com/privkey1.pem:/etc/ssl/private/origin.key:ro
     depends_on:
       - web
 
