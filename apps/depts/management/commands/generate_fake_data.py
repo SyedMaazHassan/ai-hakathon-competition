@@ -35,27 +35,22 @@ class Command(BaseCommand):
             self.stdout.write('Clearing existing data...')
             self.clear_data()
 
-        self.stdout.write('Generating fake data...')
+        self.stdout.write('Generating demo data for hackathon...')
 
-        cities = self.create_cities(options['cities'])
-        self.stdout.write(f'Created {len(cities)} cities')
+        # Create 5-6 major Pakistani cities
+        cities = self.create_major_cities()
+        self.stdout.write(f'Created {len(cities)} major cities')
 
-        departments = self.create_departments(options['departments'])
+        # Create all departments with realistic data
+        departments = self.create_all_departments()
         self.stdout.write(f'Created {len(departments)} departments')
 
-        entities = self.create_entities(departments, cities, options['entities'])
-        self.stdout.write(f'Created {len(entities)} entities')
-
-        users = self.create_users(options['users'])
-        self.stdout.write(f'Created {len(users)} users')
-
-        requests = self.create_requests(users, cities, departments, entities, options['requests'])
-        self.stdout.write(f'Created {len(requests)} requests')
-
-        self.create_additional_data(requests, departments, entities)
+        # Create 5-6 realistic entities per department per city
+        entities = self.create_realistic_entities(departments, cities)
+        self.stdout.write(f'Created {len(entities)} realistic entities')
 
         self.stdout.write(
-            self.style.SUCCESS('Successfully generated realistic fake data!')
+            self.style.SUCCESS('Successfully generated demo data for hackathon!')
         )
 
     def clear_data(self):
@@ -69,65 +64,267 @@ class Command(BaseCommand):
         for model in models_to_clear:
             model.objects.all().delete()
 
-    def create_cities(self, count):
-        """Create realistic Pakistani cities"""
-        pakistani_cities = [
-            # Punjab
-            ("Karachi", "sindh", 24.8607, 67.0011, True),
-            ("Lahore", "punjab", 31.5204, 74.3587, True),
-            ("Faisalabad", "punjab", 31.4504, 73.1350, True),
-            ("Rawalpindi", "punjab", 33.5651, 73.0169, True),
-            ("Gujranwala", "punjab", 32.1614, 74.1883, False),
-            ("Peshawar", "kp", 34.0151, 71.5249, True),
-            ("Multan", "punjab", 30.1575, 71.5249, True),
-            ("Hyderabad", "sindh", 25.3960, 68.3578, False),
-            ("Islamabad", "ict", 33.6844, 73.0479, True),
-            ("Quetta", "balochistan", 30.1798, 66.9750, True),
-            ("Bahawalpur", "punjab", 29.4000, 71.6833, False),
-            ("Sargodha", "punjab", 32.0836, 72.6711, False),
-            ("Sialkot", "punjab", 32.4945, 74.5229, False),
-            ("Sukkur", "sindh", 27.7058, 68.8574, False),
-            ("Larkana", "sindh", 27.5590, 68.2123, False),
-            ("Sheikhupura", "punjab", 31.7167, 73.9783, False),
-            ("Jhang", "punjab", 31.2681, 72.3317, False),
-            ("Rahimyar Khan", "punjab", 28.4212, 70.2989, False),
-            ("Gujrat", "punjab", 32.5739, 74.0755, False),
-            ("Kasur", "punjab", 31.1156, 74.4502, False),
-            # Add more cities with random locations for testing
+    def create_major_cities(self):
+        """Create 5-6 major Pakistani cities for demo"""
+        major_cities_data = [
+            ("Karachi", "sindh", 24.8607, 67.0011),
+            ("Lahore", "punjab", 31.5204, 74.3587),
+            ("Islamabad", "ict", 33.6844, 73.0479),
+            ("Peshawar", "kp", 34.0151, 71.5249),
+            ("Faisalabad", "punjab", 31.4504, 73.1350),
+            ("Quetta", "balochistan", 30.1798, 66.9750),
         ]
 
         cities = []
-        for i, (name, province, lat, lng, is_major) in enumerate(pakistani_cities[:count]):
+        for name, province, lat, lng in major_cities_data:
             city, created = City.objects.get_or_create(
                 name=name,
                 province=province,
                 defaults={
                     'latitude': Decimal(str(lat)),
                     'longitude': Decimal(str(lng)),
-                    'is_major_city': is_major
-                }
-            )
-            cities.append(city)
-
-        # Fill remaining with random cities if needed
-        while len(cities) < count:
-            province = random.choice(Province.choices)[0]
-            city_name = f"{fake.city()} {random.choice(['Town', 'City', 'District'])}"
-
-            city, created = City.objects.get_or_create(
-                name=city_name,
-                province=province,
-                defaults={
-                    'latitude': Decimal(str(fake.latitude())),
-                    'longitude': Decimal(str(fake.longitude())),
-                    'is_major_city': fake.boolean(chance_of_getting_true=20)
+                    'is_major_city': True
                 }
             )
             cities.append(city)
 
         return cities
 
-    def create_departments(self, count):
+    def create_all_departments(self):
+        """Create all emergency departments with realistic data"""
+        from apps.depts.choices import DepartmentCategory
+
+        department_categories = [
+            DepartmentCategory.POLICE, DepartmentCategory.FIRE_BRIGADE,
+            DepartmentCategory.AMBULANCE, DepartmentCategory.HEALTH,
+            DepartmentCategory.CYBERCRIME, DepartmentCategory.DISASTER_MGMT
+        ]
+
+        departments = []
+        for category in department_categories:
+            dept, created = Department.objects.get_or_create(
+                category=category,
+                defaults={
+                    'name': self.get_department_name(category),
+                    'description': self.get_department_description(category),
+                    'main_phone': f"+92-{random.randint(20,99)}-{random.randint(10000000,99999999)}",
+                    'emergency_number': self.get_emergency_number(category),
+                    'is_active': True
+                }
+            )
+            departments.append(dept)
+
+        return departments
+
+    def get_department_name(self, category):
+        """Get realistic department name"""
+        names = {
+            "police": "Pakistan Police",
+            "fire_brigade": "Fire & Rescue Services",
+            "ambulance": "Emergency Medical Services",
+            "health": "Department of Health",
+            "sewerage": "Water & Sanitation Agency",
+            "electricity": "Electric Supply Company",
+            "gas": "Sui Gas Corporation",
+            "bomb_disposal": "Bomb Disposal Squad",
+            "nadra": "NADRA Services",
+            "municipal": "Municipal Corporation",
+            "traffic_police": "Traffic Police",
+            "cybercrime": "Cybercrime Wing",
+            "disaster_mgmt": "Provincial Disaster Management Authority"
+        }
+        return names.get(category, f"{category.title()} Department")
+
+    def get_department_description(self, category):
+        """Get realistic department description"""
+        descriptions = {
+            "police": "Law enforcement and public safety services",
+            "fire_brigade": "Fire fighting and rescue operations",
+            "ambulance": "Emergency medical response and patient transport",
+            "health": "Healthcare services and medical facilities",
+            "sewerage": "Water supply and sewerage management",
+            "electricity": "Electrical power distribution and maintenance",
+            "gas": "Natural gas supply and pipeline maintenance",
+            "bomb_disposal": "Explosive ordnance disposal and security",
+            "nadra": "National identity and registration services",
+            "municipal": "City administration and public services",
+            "traffic_police": "Traffic management and road safety",
+            "cybercrime": "Digital crime investigation and prevention",
+            "disaster_mgmt": "Disaster preparedness and response coordination"
+        }
+        return descriptions.get(category, f"Services related to {category}")
+
+    def get_emergency_number(self, category):
+        """Get emergency numbers for departments"""
+        emergency_numbers = {
+            "police": "15",
+            "fire_brigade": "16",
+            "ambulance": "1122",
+            "health": "1122",
+            "traffic_police": "15"
+        }
+        return emergency_numbers.get(category, "")
+
+    def create_realistic_entities(self, departments, cities):
+        """Create 5-6 realistic entities per department per city"""
+        entities = []
+
+        # Realistic entity names by department category
+        entity_templates = {
+            "police": [
+                "City Police Station", "Saddar Police Station", "Clifton Police Station",
+                "Gulshan Police Station", "Defence Police Station", "Cantt Police Station"
+            ],
+            "fire_brigade": [
+                "Central Fire Station", "Saddar Fire Station", "Industrial Fire Station",
+                "Airport Fire Station", "Port Fire Station", "City Fire Station"
+            ],
+            "ambulance": [
+                "Emergency Medical Center", "Rescue Service Station", "Ambulance Hub",
+                "Medical Emergency Unit", "First Aid Center", "Paramedic Station"
+            ],
+            "health": [
+                "Civil Hospital", "Jinnah Hospital", "Government Hospital",
+                "District Hospital", "Teaching Hospital", "General Hospital"
+            ],
+            "sewerage": [
+                "Water Treatment Plant", "Pumping Station", "Filtration Plant",
+                "Water Supply Office", "Sewerage Office", "WASA Office"
+            ],
+            "electricity": [
+                "Grid Station", "Distribution Office", "Power House",
+                "Electrical Division", "Load Dispatch Center", "Service Center"
+            ],
+            "gas": [
+                "Gas Distribution Office", "Metering Station", "Gas Supply Office",
+                "Pipeline Station", "Customer Service Center", "Gas Hub"
+            ],
+            "bomb_disposal": [
+                "EOD Unit", "Bomb Squad HQ", "Explosive Unit",
+                "Security Squad", "Anti-Terror Unit", "Special Unit"
+            ],
+            "nadra": [
+                "NADRA Center", "Registration Office", "ID Card Center",
+                "Citizen Service Center", "Document Center", "NADRA Hub"
+            ],
+            "municipal": [
+                "Municipal Office", "City Council Office", "Town Hall",
+                "Administrative Office", "Public Services Office", "Civic Center"
+            ],
+            "traffic_police": [
+                "Traffic Police Station", "Traffic Control Room", "Road Safety Office",
+                "Highway Patrol Office", "Traffic Management Center", "Checkpoint Office"
+            ],
+            "cybercrime": [
+                "Cybercrime Unit", "Digital Forensics Lab", "Cyber Investigation Cell",
+                "Tech Crime Unit", "Online Crime Division", "Cyber Security Center"
+            ],
+            "disaster_mgmt": [
+                "Emergency Operations Center", "Disaster Response Unit", "Crisis Management Center",
+                "Relief Office", "Emergency Coordination Center", "Disaster Control Room"
+            ]
+        }
+
+        for department in departments:
+            templates = entity_templates.get(department.category, ["Service Center", "Office", "Station"])
+
+            for city in cities:
+                # Create 5-6 entities per department per city
+                for i, template in enumerate(templates):
+                    entity_name = f"{template} - {city.name}"
+
+                    # Create location for this entity
+                    location = self.create_entity_location(city)
+
+                    entity = DepartmentEntity.objects.create(
+                        name=entity_name,
+                        type=self.get_entity_type(department.category),
+                        department=department,
+                        city=city,
+                        location=location,
+                        phone=f"+92-{random.randint(20,99)}-{random.randint(10000000,99999999)}",
+                        services=self.get_entity_services(department.category),
+                        capacity=self.get_entity_capacity(department.category),
+                        is_active=True
+                    )
+                    entities.append(entity)
+
+        return entities
+
+    def create_entity_location(self, city):
+        """Create a location for an entity within the city"""
+        # Add some random offset to city coordinates
+        lat_offset = random.uniform(-0.05, 0.05)  # About 5km variance
+        lng_offset = random.uniform(-0.05, 0.05)
+
+        location = Location.objects.create(
+            lat=city.latitude + Decimal(str(lat_offset)),
+            lng=city.longitude + Decimal(str(lng_offset)),
+            area=f"{random.choice(['Sector', 'Block', 'Area'])} {random.choice(['A', 'B', 'C', 'G', 'F'])}-{random.randint(1,15)}",
+            city=city,
+            raw_address=f"{fake.street_address()}, {city.name}",
+            formatted_address=f"{fake.street_address()}, {city.name}, {city.get_province_display()}, Pakistan"
+        )
+        return location
+
+    def get_entity_type(self, category):
+        """Get appropriate entity type for department category"""
+        type_mapping = {
+            "police": "police_station",
+            "fire_brigade": "fire_station",
+            "ambulance": "emergency_center",
+            "health": "hospital",
+            "sewerage": "office",
+            "electricity": "office",
+            "gas": "office",
+            "bomb_disposal": "headquarters",
+            "nadra": "service_center",
+            "municipal": "office",
+            "traffic_police": "police_station",
+            "cybercrime": "headquarters",
+            "disaster_mgmt": "headquarters"
+        }
+        return type_mapping.get(category, "office")
+
+    def get_entity_services(self, category):
+        """Get services offered by entity type"""
+        services = {
+            "police": {"services": ["FIR Registration", "Traffic Violations", "Crime Investigation"], "24x7": True},
+            "fire_brigade": {"services": ["Fire Fighting", "Rescue Operations", "Emergency Response"], "24x7": True},
+            "ambulance": {"services": ["Emergency Transport", "First Aid", "Medical Response"], "24x7": True},
+            "health": {"services": ["Emergency Care", "OPD", "Surgery", "ICU"], "24x7": True},
+            "sewerage": {"services": ["Water Supply", "Sewerage Maintenance", "Complaints"], "24x7": False},
+            "electricity": {"services": ["Power Outages", "New Connections", "Bill Complaints"], "24x7": True},
+            "gas": {"services": ["Gas Leaks", "New Connections", "Meter Issues"], "24x7": True},
+            "bomb_disposal": {"services": ["Explosive Disposal", "Threat Assessment", "Security"], "24x7": True},
+            "nadra": {"services": ["ID Cards", "Certificates", "Registration"], "24x7": False},
+            "municipal": {"services": ["City Services", "Licenses", "Public Works"], "24x7": False},
+            "traffic_police": {"services": ["Traffic Control", "License Issues", "Accidents"], "24x7": True},
+            "cybercrime": {"services": ["Online Crime", "Digital Investigation", "Cyber Security"], "24x7": False},
+            "disaster_mgmt": {"services": ["Emergency Coordination", "Disaster Response", "Relief"], "24x7": True}
+        }
+        return services.get(category, {"services": ["General Services"], "24x7": False})
+
+    def get_entity_capacity(self, category):
+        """Get typical capacity for entity type"""
+        capacities = {
+            "police": random.randint(20, 100),      # Officers
+            "fire_brigade": random.randint(15, 50), # Firefighters
+            "ambulance": random.randint(5, 20),     # Ambulances
+            "health": random.randint(50, 500),      # Beds
+            "sewerage": random.randint(10, 30),     # Staff
+            "electricity": random.randint(15, 40),  # Engineers
+            "gas": random.randint(10, 25),          # Technicians
+            "bomb_disposal": random.randint(5, 15), # Specialists
+            "nadra": random.randint(20, 60),        # Counters
+            "municipal": random.randint(25, 75),    # Staff
+            "traffic_police": random.randint(15, 50), # Officers
+            "cybercrime": random.randint(5, 20),    # Investigators
+            "disaster_mgmt": random.randint(10, 30) # Coordinators
+        }
+        return capacities.get(category, random.randint(10, 50))
+
+    def create_departments_old(self, count):
         """Create realistic emergency departments"""
         department_data = [
             ("Karachi Police", "police", "Primary law enforcement for Karachi", "+92-21-99212051",

@@ -152,13 +152,19 @@ PROJECT_NAME = 'Django Boilerplate'
 
 
 # Email configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Hardcoded
-EMAIL_PORT = 587  # Hardcoded
-EMAIL_USE_TLS = True  # Hardcoded
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')  # Read from .env
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')  # Read from .env
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@example.com')  # Read from .env or default fallback
+# Email configuration - Simple setup
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.zeptomail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Emergency System <emergency@example.com>')
+
+# Use console backend for development if no email configured
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 

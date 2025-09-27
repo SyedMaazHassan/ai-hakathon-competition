@@ -74,3 +74,4 @@ googlemaps==4.10.0
 
 # Twilio SMS integration
 twilio==9.8.2
+vapi-server-sdk==1.7.2

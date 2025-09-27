@@ -2,7 +2,7 @@ from agno.models.openai import OpenAIChat
 from agno.agent import Agent
 from apps.ai_agents.prompts.router_agent_prompt import ROUTER_AGENT_PROMPT
 from agno.db.sqlite import SqliteDb
-from apps.ai_agents.pydantic_models.router_agent import RouterDecision
+from apps.depts.agents.router_agent.pydantic_models import RouterDecision
 import json
 import re
 
@@ -21,5 +21,5 @@ ROUTER_AGENT = Agent(
     markdown=True,
     search_knowledge=True,
     add_history_to_context=True,
-    output_schema=RouterDecision,
+    response_format=RouterDecision,
 )

@@ -20,34 +20,46 @@ class EntityType(models.TextChoices):
     HEADQUARTERS = "headquarters", "Headquarters"
 
 class DepartmentCategory(models.TextChoices):
+    # Core 5 departments for hackathon demo
     POLICE = "police", "Police"
     FIRE_BRIGADE = "fire_brigade", "Fire Brigade"
     AMBULANCE = "ambulance", "Ambulance/Medical Emergency"
-    SEWERAGE = "sewerage", "Sewerage & Water"
-    ELECTRICITY = "electricity", "Electricity"
-    GAS = "gas", "Gas Company"
-    BOMB_DISPOSAL = "bomb_disposal", "Bomb Disposal"
-    NADRA = "nadra", "NADRA"
     HEALTH = "health", "Health Department"
-    MUNICIPAL = "municipal", "Municipal Services"
-    TRAFFIC_POLICE = "traffic_police", "Traffic Police"
     CYBERCRIME = "cybercrime", "Cybercrime"
     DISASTER_MGMT = "disaster_mgmt", "Disaster Management"
 
+    # Fallback for unsupported departments
+    OTHER = "other", "Other/Unsupported Department"
+
+    # Additional departments - commented out for now
+    # SEWERAGE = "sewerage", "Sewerage & Water"
+    # ELECTRICITY = "electricity", "Electricity"
+    # GAS = "gas", "Gas Company"
+    # BOMB_DISPOSAL = "bomb_disposal", "Bomb Disposal"
+    # NADRA = "nadra", "NADRA"
+    # MUNICIPAL = "municipal", "Municipal Services"
+    # TRAFFIC_POLICE = "traffic_police", "Traffic Police"
+
 class DepartmentCategoryEnum(Enum):
+    # Core 5 departments for hackathon demo
     POLICE = "police", "Police"
     FIRE_BRIGADE = "fire_brigade", "Fire Brigade"
     AMBULANCE = "ambulance", "Ambulance/Medical Emergency"
-    SEWERAGE = "sewerage", "Sewerage & Water"
-    ELECTRICITY = "electricity", "Electricity"
-    GAS = "gas", "Gas Company"
-    BOMB_DISPOSAL = "bomb_disposal", "Bomb Disposal"
-    NADRA = "nadra", "NADRA"
     HEALTH = "health", "Health Department"
-    MUNICIPAL = "municipal", "Municipal Services"
-    TRAFFIC_POLICE = "traffic_police", "Traffic Police"
     CYBERCRIME = "cybercrime", "Cybercrime"
     DISASTER_MGMT = "disaster_mgmt", "Disaster Management"
+
+    # Fallback for unsupported departments
+    OTHER = "other", "Other/Unsupported Department"
+
+    # Additional departments - commented out for now
+    # SEWERAGE = "sewerage", "Sewerage & Water"
+    # ELECTRICITY = "electricity", "Electricity"
+    # GAS = "gas", "Gas Company"
+    # BOMB_DISPOSAL = "bomb_disposal", "Bomb Disposal"
+    # NADRA = "nadra", "NADRA"
+    # MUNICIPAL = "municipal", "Municipal Services"
+    # TRAFFIC_POLICE = "traffic_police", "Traffic Police"
 
 
 
@@ -83,6 +95,11 @@ class ActionType(models.TextChoices):
     EMERGENCY_CALL = "call", "Emergency Call"
     APPOINTMENT_BOOKED = "booking", "Appointment Booked"
     ESCALATION = "escalation", "Request Escalated"
+    # Trigger orchestrator specific actions
+    NEARBY_SEARCH = "nearby_search", "Nearby Services Search"
+    MAPS_DIRECTIONS = "maps_directions", "Maps Directions Generated"
+    EMERGENCY_BROADCAST = "emergency_broadcast", "Emergency Broadcast Sent"
+    FOLLOWUP_SCHEDULE = "followup_schedule", "Follow-up Scheduled"
 
 class CallStatus(models.TextChoices):
     INITIATED = "initiated", "Call Initiated"

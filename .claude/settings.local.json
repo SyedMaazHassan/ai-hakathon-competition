@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python manage.py:*)"
+      "Bash(python manage.py:*)",
+      "Bash(python test_matcher_service.py:*)"
     ],
     "deny": [],
     "ask": []
