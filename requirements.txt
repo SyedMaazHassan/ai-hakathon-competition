@@ -38,7 +38,7 @@ pdfminer.six==20250506
 pdfplumber==0.11.7
 pillow==11.1.0
 prompt_toolkit==3.0.52
-psycopg2-binary==2.9.7
+psycopg2-binary==2.9.10
 pycparser==2.23
 pydantic==2.11.9
 pydantic-settings==2.10.1

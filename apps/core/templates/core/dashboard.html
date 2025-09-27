@@ -5,7 +5,7 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-[30px] leading-9 font-bold tracking-[-0.75px] dark:text-white">Dashboard</h1>
+      <h1 class="text-gray-900 text-[30px] leading-9 font-bold tracking-[-0.75px] dark:text-white">Dashboard</h1>
       <p class="text-gray-500 mt-2 dark:text-gray-400">Welcome back! Here's an overview of your hiring activities.</p>
     </div>
     <a href="{% url 'jobs:job_create' %}">
@@ -19,52 +19,414 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Jobs</div>
-        <i class="fa-solid fa-briefcase text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Requests</div>
+        <i class="fa-regular fa-file-lines text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ active_jobs_count }}</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">1247</div>
       <p class="text-xs {% if jobs_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if jobs_percentage_change >= 0 %}+{% endif %}{{ jobs_percentage_change }}% from last month
       </p>
     </div>
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Resumes</div>
-        <i class="fa-regular fa-file-lines text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Cases</div>
+        <i class="bi bi-activity text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ total_resumes_count }}</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">23</div>
       <p class="text-xs {% if resumes_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if resumes_percentage_change >= 0 %}+{% endif %}{{ resumes_percentage_change }}% from last month
       </p>
     </div>
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Applications</div>
-        <i class="fa-solid fa-users text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Resolved Today</div>
+        <i class="bi bi-check-circle text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ applications_count }}</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">55</div>
       <p class="text-xs {% if applications_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if applications_percentage_change >= 0 %}+{% endif %}{{ applications_percentage_change }}% from last month
       </p>
     </div>
     <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
       <div class="flex items-center justify-between pb-2">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Match Rate</div>
-        <i class="fa-solid fa-square-check text-gray-500 text-xs dark:text-gray-400"></i>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Response Time</div>
+        <i class="bi bi-alarm text-gray-500 text-xs dark:text-gray-400"></i>
       </div>
-      <div class="text-2xl font-bold dark:text-white">{{ match_rate }}%</div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">14m</div>
       <p class="text-xs {% if match_rate_percentage_change >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
         {% if match_rate_percentage_change >= 0 %}+{% endif %}{{ match_rate_percentage_change }}% from last month
       </p>
     </div>
   </div>
 
+
+
+  {% comment %} Recent Requests table {% endcomment %}
+  <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Recent Requests</h2>
+        <div class="flex space-x-3">
+            <button class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="bi bi-funnel"></i>
+                <span>Filter</span>
+            </button>
+            <button class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+                <span>Search</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto"> <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        CASE / USER
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        REQUEST DETAILS
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        PRIORITY
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        STATUS
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        CREATED
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ACTIONS
+                    </th>
+                </tr>
+            </thead>
+            
+            <tbody class="bg-white divide-y divide-gray-200">
+                
+                <tr class="cursor-pointer hover:bg-gray-50 transition duration-150" onclick="openModal('C-A812CD34')">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 text-xl flex items-center justify-center rounded-full bg-purple-100 text-purple-600 mr-3">
+                                🏥
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">C-A812CD34</div>
+                                <div class="text-sm text-gray-500">Ahmed Hassan</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">Heart attack emergency at home</div>
+                        <div class="text-xs text-gray-500 flex items-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Gulberg III, Lahore</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            CRITICAL
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            ASSIGNED
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        2024-01-15 14:30
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-gray-200 z-10" onclick="event.stopPropagation(); alert('View Actions for C-A812CD34');">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr class="cursor-pointer hover:bg-gray-50 transition duration-150" onclick="openModal('C-XY56ZW89')">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 text-xl flex items-center justify-center rounded-full bg-blue-100 text-blue-600 mr-3">
+                                🚓
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">C-XY56ZW89</div>
+                                <div class="text-sm text-gray-500">Fatima Ali</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">Theft case to report, stolen mobile phone</div>
+                        <div class="text-xs text-gray-500 flex items-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Model Town, Lahore</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                            MEDIUM
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            IN PROGRESS
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        2024-01-15 13:15
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-gray-200 z-10" onclick="event.stopPropagation(); alert('View Actions for C-XY56ZW89');">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr class="cursor-pointer hover:bg-gray-50 transition duration-150" onclick="openModal('C-MN34QR78')">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 text-xl flex items-center justify-center rounded-full bg-green-100 text-green-600 mr-3">
+                                🏛️
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">C-MN34QR78</div>
+                                <div class="text-sm text-gray-500">Muhammad Khan</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">Need birth certificate for passport</div>
+                        <div class="text-xs text-gray-500 flex items-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>DHA Phase 5, Lahore</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            LOW
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            PENDING
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        2024-01-15 11:45
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-gray-200 z-10" onclick="event.stopPropagation(); alert('View Actions for C-MN34QR78');">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr class="cursor-pointer hover:bg-gray-50 transition duration-150" onclick="openModal('C-PQ90RS12')">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 text-xl flex items-center justify-center rounded-full bg-red-100 text-red-600 mr-3">
+                                🚒
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">C-PQ90RS12</div>
+                                <div class="text-sm text-gray-500">Aisha Ahmed</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">House fire emergency, need immediate help</div>
+                        <div class="text-xs text-gray-500 flex items-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Johar Town, Lahore</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            CRITICAL
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            RESOLVED
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        2024-01-15 09:20
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-gray-200 z-10" onclick="event.stopPropagation(); alert('View Actions for C-PQ90RS12');">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% comment %} script for opening and closing modal of Recent Requests {% endcomment %}
+<script>
+    function openModal(caseId) {
+        // In a real application, you would show the modal element here.
+        // For this example, we'll just show an alert.
+        console.log('Opening modal for Case ID:', caseId);
+        document.getElementById('modal-request-details').classList.remove('hidden');
+        document.getElementById('modal-case-id').textContent = caseId;
+        // Optionally update other modal content based on caseId
+    }
+
+    function closeModal() {
+        document.getElementById('modal-request-details').classList.add('hidden');
+    }
+</script>
+
+{% comment %} modal for Recent Requests details {% endcomment %}
+<div id="modal-request-details" class="fixed inset-0 z-50 overflow-y-auto bg-gray-600 bg-opacity-50 hidden transition-opacity" onclick="closeModal()">
+    
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full" role="dialog" aria-modal="true" aria-labelledby="modal-headline" onclick="event.stopPropagation()">
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start border-b border-gray-200 pb-4 mb-4">
+                    <h3 class="text-xl font-semibold text-gray-900" id="modal-headline">
+                        Request Details - <span id="modal-case-id">C-A812CD34</span>
+                    </h3>
+                    <button type="button" class="text-gray-400 hover:text-gray-600 transition" onclick="closeModal()">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+                    <div class="space-y-6">
+                        
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">User Information</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <p class="text-lg font-medium text-gray-900">Ahmed Hassan</p>
+                                <div class="text-sm text-gray-500 flex items-center mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Gulberg III, Lahore</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Request Details</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <p class="text-lg font-medium text-gray-900 mb-2">Heart attack emergency at home</p>
+                                <div class="flex space-x-2">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        CRITICAL
+                                    </span>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-pink-100 text-pink-800">
+                                        HEALTH
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="space-y-6">
+                        
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Assignment</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <p class="text-lg font-medium text-gray-900 mb-2">City Hospital Emergency</p>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    ASSIGNED
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-2">Timeline</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                                <ul class="space-y-2 text-sm text-gray-700">
+                                    <li class="flex items-center space-x-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Created: 2024-01-15 14:30</span>
+                                    </li>
+                                    <li class="flex items-center space-x-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>Assigned: 2024-01-15 14:30</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t pt-4"> 
+                    <h4 class="text-sm font-semibold text-gray-500 uppercase mb-3">Recent Actions</h4>
+                    <div class="p-4 border border-gray-100 rounded-lg bg-gray-50">
+                        <ul class="space-y-3">
+                            <li class="flex justify-between items-center text-sm text-gray-800">
+                                <span class="flex items-center space-x-2">
+                                    <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                                    <span>Emergency call made to City Hospital</span>
+                                </span>
+                                <span class="text-xs text-gray-500">2024-01-15 14:32</span>
+                            </li>
+                            <hr class="border-gray-300"/> 
+                            <li class="flex justify-between items-center text-sm text-gray-800">
+                                <span class="flex items-center space-x-2">
+                                    <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                                    <span>SMS sent to patient with appointment details</span>
+                                </span>
+                                <span class="text-xs text-gray-500">2024-01-15 14:33</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+
   <!-- The rest of your template remains the same -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div>
       <div class="bg-white border border-gray-200 rounded-xl dark:bg-dark-card dark:border-dark-border">
         <div class="p-6">
-          <div class="text-2xl font-semibold tracking-[-0.6px] dark:text-white">Quick Actions</div>
+          <div class="text-2xl text-gray-900 font-semibold tracking-[-0.6px] dark:text-white">Quick Actions</div>
         </div>
         <div class="px-6 pb-6 space-y-3">
           <a href="{% url 'jobs:job_create' %}" class="block">
@@ -72,7 +434,7 @@
               <div class="p-4 flex items-center gap-3">
                 <div class="p-2 rounded bg-[color:var(--brand,#EE7C2B)] text-white" style="--brand:#EE7C2B"><i class="fa-solid fa-plus text-xs"></i></div>
                 <div class="min-w-0">
-                  <p class="font-medium truncate dark:text-white">Create New Job</p>
+                  <p class="font-medium truncate text-gray-900 dark:text-white">Create New Job</p>
                   <p class="text-sm text-gray-500 truncate dark:text-gray-400">Post a new job opening</p>
                 </div>
               </div>
@@ -83,7 +445,7 @@
               <div class="p-4 flex items-center gap-3">
                 <div class="p-2 rounded bg-blue-500 text-white"><i class="fa-solid fa-users text-xs"></i></div>
                 <div class="min-w-0">
-                  <p class="font-medium truncate dark:text-white">Upload Resumes</p>
+                  <p class="font-medium truncate text-gray-900 dark:text-white">Upload Resumes</p>
                   <p class="text-sm text-gray-500 truncate dark:text-gray-400">Add candidate resumes</p>
                 </div>
               </div>
@@ -94,7 +456,7 @@
               <div class="p-4 flex items-center gap-3">
                 <div class="p-2 rounded bg-green-500 text-white"><i class="fa-solid fa-square-check text-xs"></i></div>
                 <div class="min-w-0">
-                  <p class="font-medium truncate dark:text-white">Generate Reports</p>
+                  <p class="font-medium text-gray-900 truncate dark:text-white">Generate Reports</p>
                   <p class="text-sm text-gray-500 truncate dark:text-gray-400">Match jobs with resumes</p>
                 </div>
               </div>
@@ -104,37 +466,69 @@
       </div>
     </div>
     <div class="lg:col-span-2">
-      <div class="bg-white border border-gray-200 rounded-xl dark:bg-dark-card dark:border-dark-border">
-        <div class="p-6">
-          <div class="text-2xl font-semibold tracking-[-0.6px] dark:text-white">Recent Activity</div>
-        </div>
-        <div class="px-6 pb-6">
-          <div>
-            {% for activity in recent_activity %}
-            <div class="flex items-center gap-3 p-3 rounded-lg">
-              <div class="p-2 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300"><i class="fa-solid {{ activity.icon }} text-xs"></i></div>
-              <div class="min-w-0">
-                <p class="text-sm font-medium truncate dark:text-white">{{ activity.title }}</p>
-                {% if activity.time %}
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ activity.time|timesince }} ago</p>
-                {% else %}
-                <p class="text-xs text-gray-500 dark:text-gray-400">Ongoing</p>
-                {% endif %}
-              </div>
+<div class="p-4 bg-white border border-gray-200 rounded-xl dark:bg-dark-card dark:border-dark-border">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6  dark:text-white">Recent Activity</h2>
+
+    <ul class="space-y-4">
+        
+
+        
+        <li class="relative">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi bi-check-circle-fill text-2xl text-green-500" style="font-size: 29px;"></i> 
+                </div>
+                
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center">
+                        <p class="text-base text-gray-800 font-normal dark:text-white" style="font-size: 19px;">
+                            <span class="text-gray-900 font-semibold dark:text-white">C-XY56ZW89</span> - Appointment scheduled at Central Police Station
+                        </p>
+                        <span class="text-xs text-gray-500 whitespace-nowrap ml-4 dark:text-white">
+                            2024-01-15 13:18
+                        </span>
+                    </div>
+                </div>
             </div>
-            {% empty %}
-            <div class="text-center py-4 text-gray-500 dark:text-gray-400">
-              No recent activity
+        </li>
+        <li class="relative">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi bi-check-circle-fill text-2xl text-green-500" style="font-size: 29px;"></i> 
+                </div>
+                
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center">
+                        <p class="text-base text-gray-800 font-normal dark:text-white" style="font-size: 19px;">
+                            <span class="text-gray-900 font-semibold dark:text-white">C-XY56ZW89</span> - Appointment scheduled at Central Police Station
+                        </p>
+                        <span class="text-xs text-gray-500 whitespace-nowrap ml-4 dark:text-white">
+                            2024-01-15 13:18
+                        </span>
+                    </div>
+                </div>
             </div>
-            {% endfor %}
-          </div>
-          <div class="pt-4 mt-4 border-t">
-            <a href="/reports">
-              <button class="w-full h-9 px-4 border rounded-md text-sm dark:border-gray-700 dark:text-gray-300">View All Activity</button>
-            </a>
-          </div>
-        </div>
-      </div>
+        </li>
+        <li class="relative">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="bi bi-check-circle-fill text-2xl text-green-500" style="font-size: 29px;"></i> 
+                </div>
+                
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center">
+                        <p class="text-base text-gray-800 font-normal dark:text-white" style="font-size: 19px;">
+                            <span class="text-gray-900 font-semibold dark:text-white">C-XY56ZW89</span> - Appointment scheduled at Central Police Station
+                        </p>
+                        <span class="text-xs text-gray-500 whitespace-nowrap ml-4 dark:text-white">
+                            2024-01-15 13:18
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>
     </div>
   </div>
 </div>

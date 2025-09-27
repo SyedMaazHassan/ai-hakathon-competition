@@ -248,3 +248,18 @@ class UpdateProfileView(LoginRequiredMixin, TemplateView):
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
         return redirect('profile')
+
+
+
+# make a view for rendering a all_request page
+def all_request(request):
+    return render(request, 'core/all_request.html')
+
+def AppointmentsView(request):
+    return render(request, 'core/appointments.html')
+
+def AnalyticsView(request):
+    return render(request, 'core/analytics.html')
+
+def EmergencyCallsView(request):
+    return render(request, 'core/emergency_calls.html')

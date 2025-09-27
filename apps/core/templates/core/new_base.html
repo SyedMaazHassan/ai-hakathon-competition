@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dashboard{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">    <style>
         [x-cloak] { display: none !important; }
         html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
 
@@ -207,6 +208,44 @@
                    {% endif %}">
                   <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'jobs' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
                   <span class="flex-1">Jobs</span>
+                </a>
+
+                <a href="{% url "all_request" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'all-request' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'all-request' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">All Request</span>
+                </a>
+
+                <a href="{% url "appointments" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'appointments' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'appointments' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Appointments</span>
+                </a>
+                <a href="{% url "analytics" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'analytics' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'analytics' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Analytics</span>
+                </a>
+                <a href="{% url "emergency_calls" %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'emergency-calls' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'emergency-calls' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Emergency Calls</span>
                 </a>
 
                 <a href="{% url 'hiring:resumes_list' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
