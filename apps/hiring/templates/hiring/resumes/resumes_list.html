@@ -1,0 +1,269 @@
+{% extends "core/new_base.html" %}
+
+{% block title %}Resumes | Hire With AI{% endblock %}
+{% block current_page %}Resumes{% endblock %}
+{% block page_title %}Resumes{% endblock %}
+{% block page_subtitle %}Manage candidate resumes and profiles{% endblock %}
+
+{% block extra_head %}
+<style>
+  .resume-card {
+    transition: all 0.2s ease;
+  }
+  .resume-card.hidden {
+    display: none;
+  }
+  .highlight {
+    background-color: #fff8e1;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight dark:text-white">Resumes</h1>
+      <p class="text-gray-600 mt-2 dark:text-gray-400">Manage candidate resumes and profiles</p>
+    </div>
+    <a href="{% url 'hiring:resumes_upload' %}">
+      <button class="inline-flex items-center min-h-9 px-4 py-2 rounded-md text-white bg-orange-500 hover:bg-orange-600 text-sm font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/><path d="M12 5v14"/>
+        </svg>
+        Upload Resume
+      </button>
+    </a>
+  </div>
+
+  <!-- Search + Filters -->
+  <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl mt-6">
+    <div class="p-4">
+      <div class="flex gap-4">
+        <div class="relative flex-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 dark:text-dark-text" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search by name, skills, education, projects..."
+            class="w-full h-9 pl-9 pr-3 rounded-md border border-gray-300 dark:border-dark-border bg-gray-50 dark:bg-dark-hover text-sm dark:text-dark-text placeholder:text-gray-500 dark:placeholder:text-gray-400"
+          />
+        </div>
+        <button class="h-9 px-4 rounded-md border border-gray-300 dark:border-dark-border text-sm font-medium dark:text-dark-text" id="clear-search">
+          Clear
+        </button>
+      </div>
+      <div class="mt-2 flex flex-wrap gap-2 hidden" id="search-status">
+        <span class="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 px-2 py-1 rounded-full" id="results-count"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resume Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6" id="resumes-container">
+    {% for resume in resumes %}
+    <div class="resume-card" data-search-data="{{ resume.metadata.personal_info.full_name }} {{ resume.metadata.personal_info.professional_title }} {% for skill in resume.metadata.technical_skills %}{{ skill.name }} {% endfor %} {% for project in resume.metadata.projects %}{{ project.name }} {{ project.description }} {% endfor %} {% for edu in resume.metadata.education %}{{ edu.degree }} {{ edu.institution }} {% endfor %}">
+      <a href="{% url 'hiring:resume_detail' resume.id %}" class="block cursor-pointer">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+          <div class="p-4">
+            <!-- Name + Title -->
+            <h2 class="text-lg font-bold text-gray-900 dark:text-dark-text truncate resume-name">
+              {{ resume.metadata.personal_info.full_name|default:"Candidate" }}
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-dark-text resume-title">{{ resume.metadata.personal_info.professional_title|default:"—" }}</p>
+
+            <!-- Contact -->
+            <div class="mt-3 space-y-2 text-sm text-gray-600 dark:text-dark-text">
+              <p><strong>Email:</strong> {{ resume.metadata.contact_info.email|default:"—" }}</p>
+              <p><strong>Phone:</strong> {{ resume.metadata.contact_info.phone|default:"—" }}</p>
+              <p><strong>Location:</strong> {{ resume.metadata.education.0.location|default:"—" }}</p>
+            </div>
+
+            <!-- Skills -->
+            {% if resume.metadata.technical_skills %}
+            <div class="mt-4">
+              <p class="font-medium text-gray-800 dark:text-dark-text mb-1">Skills</p>
+              <div class="flex flex-wrap gap-2 resume-skills">
+                {% for skill in resume.metadata.technical_skills|slice:":5" %}
+                  <span class="px-2 py-1 text-xs rounded bg-gray-100 dark:bg-dark-hover dark:text-dark-text">{{ skill.name }}</span>
+                {% endfor %}
+                {% if resume.metadata.technical_skills|length > 5 %}
+                  <span class="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-dark-hover dark:text-dark-text">+{{ resume.metadata.technical_skills|length|add:"-5" }} more</span>
+                {% endif %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Latest Project -->
+            {% if resume.metadata.projects %}
+            <div class="mt-4">
+              <p class="font-medium text-gray-800 dark:text-dark-text mb-1">Latest Project</p>
+              <div class="bg-gray-50 dark:bg-dark-hover p-2 rounded-md text-xs resume-project">
+                <p class="font-semibold truncate dark:text-dark-text">{{ resume.metadata.projects.0.name }}</p>
+                <p class="text-gray-600 dark:text-dark-text truncate">{{ resume.metadata.projects.0.description|slice:":100" }}...</p>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Education -->
+            {% if resume.metadata.education %}
+            <div class="mt-4">
+              <p class="font-medium text-gray-800 dark:text-dark-text mb-1">Education</p>
+              <p class="text-sm text-gray-600 dark:text-dark-text resume-education">
+                {{ resume.metadata.education.0.degree }} - {{ resume.metadata.education.0.institution }}
+                ({{ resume.metadata.education.0.start_date.year }} - {{ resume.metadata.education.0.end_date.year }})
+              </p>
+            </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="pt-4 mt-4 border-t border-gray-200 dark:border-dark-border text-xs text-gray-500 dark:text-dark-text flex justify-between">
+              <span>Uploaded {{ resume.created_at|date:"M j, Y" }}</span>
+              <span class="text-blue-600 dark:text-blue-400 hover:underline">View Details</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-span-3">
+      <div class="bg-white dark:bg-dark-card border border-dashed border-gray-300 dark:border-dark-border rounded-xl p-8 text-center">
+        <p class="text-gray-600 dark:text-dark-text">No resumes yet. <a class="text-blue-600 dark:text-blue-400" href="{% url 'hiring:resumes_upload' %}">Upload some</a>.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- No Results Found (initially hidden) -->
+  <div id="no-results" class="hidden mt-6">
+    <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-dark-card dark:to-dark-card border border-orange-200 dark:border-dark-border rounded-xl p-8 text-center">
+      <div class="max-w-md mx-auto">
+        <div class="w-16 h-16 mx-auto mb-4 bg-orange-100 dark:bg-dark-hover rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-orange-500 dark:text-dark-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-2">No matching resumes found</h3>
+        <p class="text-gray-600 dark:text-dark-text mb-6">Try adjusting your search terms or upload new resumes</p>
+        <a href="{% url 'hiring:resumes_upload' %}" class="inline-flex items-center px-4 py-2 rounded-md text-white bg-orange-500 hover:bg-orange-600 font-medium shadow-sm transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="M12 5v14"/>
+          </svg>
+          Upload New Resume
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const clearSearch = document.getElementById('clear-search');
+    const resumeCards = document.querySelectorAll('.resume-card');
+    const searchStatus = document.getElementById('search-status');
+    const resultsCount = document.getElementById('results-count');
+    const noResults = document.getElementById('no-results');
+    const resumesContainer = document.getElementById('resumes-container');
+
+    // Function to perform search
+    function performSearch() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+
+      if (searchTerm === '') {
+        // Show all cards if search is empty
+        resumeCards.forEach(card => {
+          card.classList.remove('hidden');
+          // Remove any highlights
+          const elements = card.querySelectorAll('.highlight');
+          elements.forEach(el => {
+            el.outerHTML = el.innerHTML;
+          });
+        });
+        visibleCount = resumeCards.length;
+        searchStatus.classList.add('hidden');
+        noResults.classList.add('hidden');
+        resumesContainer.classList.remove('hidden');
+      } else {
+        // Filter cards based on search term
+        resumeCards.forEach(card => {
+          const searchData = card.getAttribute('data-search-data').toLowerCase();
+
+          if (searchData.includes(searchTerm)) {
+            card.classList.remove('hidden');
+            visibleCount++;
+
+            // Highlight the matching text (simple implementation)
+            highlightText(card, searchTerm);
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+
+        // Show search status
+        searchStatus.classList.remove('hidden');
+        resultsCount.textContent = `Found ${visibleCount} resume(s) matching "${searchTerm}"`;
+
+        // Handle case when no results are found
+        if (visibleCount === 0) {
+          searchStatus.classList.remove('hidden');
+          resultsCount.textContent = `No resumes found matching "${searchTerm}"`;
+          resultsCount.classList.remove('bg-blue-100', 'text-blue-800');
+          resultsCount.classList.add('bg-red-100', 'text-red-800');
+
+          // Show the no results card and hide the resumes container
+          noResults.classList.remove('hidden');
+          resumesContainer.classList.add('hidden');
+        } else {
+          resultsCount.classList.remove('bg-red-100', 'text-red-800');
+          resultsCount.classList.add('bg-blue-100', 'text-blue-800');
+          noResults.classList.add('hidden');
+          resumesContainer.classList.remove('hidden');
+        }
+      }
+    }
+
+    // Simple text highlighting function
+    function highlightText(card, searchTerm) {
+      // Remove previous highlights
+      const elements = card.querySelectorAll('.highlight');
+      elements.forEach(el => {
+        el.outerHTML = el.innerHTML;
+      });
+
+      // Add highlights to text content
+      const textElements = card.querySelectorAll('h2, p, span:not(.bg-gray-100):not(.bg-gray-200):not(.bg-blue-100):not(.bg-red-100)');
+      textElements.forEach(el => {
+        const originalHTML = el.innerHTML;
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newHTML = originalHTML.replace(regex, '<span class="highlight">$1</span>');
+        el.innerHTML = newHTML;
+      });
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', performSearch);
+
+    clearSearch.addEventListener('click', function() {
+      searchInput.value = '';
+      performSearch();
+    });
+
+    // Allow pressing Enter to search
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+  });
+</script>
+{% endblock %}

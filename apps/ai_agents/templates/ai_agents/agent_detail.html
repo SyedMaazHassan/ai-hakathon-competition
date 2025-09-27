@@ -1,0 +1,488 @@
+{% extends 'include/base.inc.html' %}
+{% load static %}
+{% block title %}{{ agent.name }} - Agent Details{% endblock title %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'ai_agents:agent_list' %}" class="btn btn-light me-3">
+                <i class="bi bi-arrow-left"></i> Back to Agents
+            </a>
+            <h1 class="mb-0">{{ agent.name }}</h1>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-dark">
+                <i class="bi bi-chat-text me-1"></i> Chat
+            </button>
+            <button class="btn btn-outline-secondary">
+                <i class="bi bi-gear me-1"></i> Configure
+            </button>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'ai_agents:agent_list' %}">Agents</a></li>
+        <li class="breadcrumb-item active">{{ agent.name }}</li>
+    </ol>
+
+    <!-- Agent Profile Card -->
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <!-- Agent Avatar and Basic Info -->
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-light border mx-auto mb-3" style="width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+                            {% if agent.avatar %}
+                                <img src="{{ agent.avatar.url }}" alt="{{ agent.name }}" class="rounded-circle" style="width: 100px; height: 100px;">
+                            {% else %}
+                                <i class="bi bi-cpu text-secondary" style="font-size: 3rem;"></i>
+                            {% endif %}
+                        </div>
+                        <h3 class="fw-bold mb-1">{{ agent.name }}</h3>
+                        {% if agent.role %}
+                            <p class="text-muted mb-0">{{ agent.role }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Agent Statistics -->
+                    <div class="row text-center mb-4">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <div class="fw-bold fs-4 text-primary">{{ agent.rating|floatformat:1 }}</div>
+                                <small class="text-muted">Rating</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="fw-bold fs-4 text-success">{{ agent.review_count }}</div>
+                            <small class="text-muted">Reviews</small>
+                        </div>
+                    </div>
+
+                    <!-- Agent Status -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Status:</span>
+                            {% if agent.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Mode:</span>
+                            <span class="badge bg-info">{{ agent.get_mode_display }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Model:</span>
+                            <span class="text-dark">{{ agent.model }}</span>
+                        </div>
+                    </div>
+
+                    {% if agent.is_testable %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Test Mode:</span>
+                            <span class="badge bg-warning">Available</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Agent Description -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-info-circle me-2"></i>About This Agent
+                    </h5>
+                    
+                    {% if agent.display_tagline %}
+                        <div class="mb-3">
+                            <h6 class="text-muted small text-uppercase mb-1">Tagline</h6>
+                            <p class="fw-medium mb-0">{{ agent.display_tagline|linebreaks|safe }}</p>
+                        </div>
+                        <hr class="my-3">
+                    {% endif %}
+
+                    {% if agent.display_description %}
+                        <div class="mb-3">
+                            <h6 class="text-muted small text-uppercase mb-2">Description</h6>
+                            <p class="mb-0">{{ agent.display_description|linebreaks|safe }}</p>
+                        </div>
+                    {% endif %}
+
+                    {% if agent.description %}
+                        <hr class="my-3">
+                        <div class="mb-3">
+                            <h6 class="text-muted small text-uppercase mb-2">Internal Description</h6>
+                            <p class="mb-0 text-muted">{{ agent.description|linebreaks|safe }}</p>
+                        </div>
+                    {% endif %}
+
+                    {% if agent.agent_instructions %}
+                        <hr class="my-3">
+                        <div class="mb-3">
+                            <h6 class="text-muted small text-uppercase mb-2">Agent Instructions</h6>
+                            <div class="bg-light p-3 rounded">
+                                <ul class="mb-0 small">
+                                    {% for instruction in agent.agent_instructions %}
+                                        <li>{{ instruction|safe }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Capabilities -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-lightning-charge me-2"></i>Capabilities
+                    </h5>
+                    {% if agent.capabilities.all %}
+                        <div class="row">
+                            {% for capability in agent.capabilities.all %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi bi-check-circle-fill text-success me-2 mt-1"></i>
+                                        <div>
+                                            <h6 class="mb-1">{{ capability.name }}</h6>
+                                            {% if capability.description %}
+                                                <p class="text-muted small mb-0">{{ capability.description }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No specific capabilities defined for this agent.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tools -->
+            {% if agent.tools.all %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-tools me-2"></i>Available Tools
+                    </h5>
+                    <div class="row">
+                        {% for tool in agent.tools.all %}
+                            <div class="col-md-4 mb-2">
+                                <span class="badge bg-light text-dark border px-3 py-2">
+                                    <i class="bi bi-wrench me-1"></i>{{ tool.name }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-4">
+                <i class="bi bi-list-task me-2"></i>Available Tasks
+                <span class="badge bg-primary ms-2">{{ agent.tasks.count }}</span>
+            </h5>
+
+            {% if agent.tasks.all %}
+                <div class="row">
+                    {% for task in agent.tasks.all %}
+                        <div class="col-12 mb-4">
+                            <div class="border rounded p-4 bg-light">
+                                <!-- Task Header -->
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">{{ task.name }}</h6>
+                                        <small class="text-muted">Key: {{ task.key }}</small>
+                                        {% if task.task_type %}
+                                            <span class="badge bg-info ms-2">{{ task.task_type }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-play-fill me-1"></i>Execute
+                                    </button>
+                                </div>
+
+                                <!-- Task Description -->
+                                {% if task.display_description %}
+                                    <div class="mb-3">
+                                        <p class="text-muted mb-0">{{ task.display_description|linebreaks|safe }}</p>
+                                    </div>
+                                {% endif %}
+
+                                {% if task.description %}
+                                    <div class="mb-3">
+                                        <small class="text-muted">Internal Description:</small>
+                                        <p class="small text-muted mb-0">{{ task.description|linebreaks|safe }}</p>
+                                    </div>
+                                {% endif %}
+
+                                {% if task.task_instructions %}
+                                    <div class="mb-3">
+                                        <small class="text-muted">Task Instructions:</small>
+                                        <div class="bg-light p-2 rounded mt-1">
+                                            <ul class="mb-0 small">
+                                                {% for instruction in task.task_instructions %}
+                                                    <li>{{ instruction|safe }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Task Inputs Table -->
+                                {% if task.get_inputs %}
+                                    <div class="mb-3">
+                                        <h6 class="mb-2">
+                                            <i class="bi bi-arrow-down-circle me-1"></i>Input Fields
+                                        </h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th style="width: 20%;">Field Name</th>
+                                                        <th style="width: 15%;">Key</th>
+                                                        <th style="width: 15%;">Type</th>
+                                                        <th style="width: 10%;">Required</th>
+                                                        <th style="width: 40%;">Description</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for input_field in task.get_inputs %}
+                                                        <tr>
+                                                            <td class="fw-medium">{{ input_field.name }}</td>
+                                                            <td><code>{{ input_field.key }}</code></td>
+                                                            <td>
+                                                                <span class="badge bg-secondary">{{ input_field.get_input_type_display }}</span>
+                                                            </td>
+                                                            <td>
+                                                                {% if input_field.is_required %}
+                                                                    <i class="bi bi-check-circle-fill text-success"></i> True
+                                                                {% else %}
+                                                                    <i class="bi bi-dash-circle text-muted"></i> False
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                {{ input_field.description|default:"No description provided"|linebreaks|safe }}
+                                                                {% if input_field.default_value %}
+                                                                    <br><small class="text-muted">Default: {{ input_field.default_value|safe }}</small>
+                                                                {% endif %}
+                                                                {% if input_field.options %}
+                                                                    <br><small class="text-muted">Options: {{ input_field.options|join:", " }}</small>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Task Outputs Table -->
+                                {% if task.output_schema %}
+                                    <div class="mb-3">
+                                        <h6 class="mb-2">
+                                            <i class="bi bi-arrow-up-circle me-1"></i>Output Schema
+                                        </h6>
+                                        <div class="mb-2">
+                                            <strong>Schema Name:</strong> {{ task.output_schema.name }}
+                                            {% if task.output_schema.description %}
+                                                <br><small class="text-muted">{{ task.output_schema.description|linebreaks|safe }}</small>
+                                            {% endif %}
+                                        </div>
+                                        {% if task.output_schema.fields.all %}
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-success">
+                                                        <tr>
+                                                            <th style="width: 20%;">Field Name</th>
+                                                            <th style="width: 15%;">Key</th>
+                                                            <th style="width: 15%;">Type</th>
+                                                            <th style="width: 10%;">Required</th>
+                                                            <th style="width: 40%;">Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for output_field in task.output_schema.fields.all %}
+                                                            <tr>
+                                                                <td class="fw-medium">{{ output_field.name }}</td>
+                                                                <td><code>{{ output_field.key }}</code></td>
+                                                                <td>
+                                                                    <span class="badge bg-success">{{ output_field.get_field_type_display }}</span>
+                                                                </td>
+                                                                <td>
+                                                                    {% if output_field.is_required %}
+                                                                        <i class="bi bi-check-circle-fill text-success"></i> True
+                                                                    {% else %}
+                                                                        <i class="bi bi-dash-circle text-muted"></i> False
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {{ output_field.description|default:"No description provided"|linebreaks|safe }}
+                                                                    {% if output_field.default_value %}
+                                                                        <br><small class="text-muted">Default: {{ output_field.default_value|safe }}</small>
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        {% else %}
+                                            <p class="text-muted small mb-0">No specific output fields defined. Using default schema.</p>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="mb-3">
+                                        <h6 class="mb-2">
+                                            <i class="bi bi-arrow-up-circle me-1"></i>Output Schema
+                                        </h6>
+                                        <p class="text-muted small mb-0">Using default output schema (output_title, output_content)</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-list-task text-muted" style="font-size: 3rem;"></i>
+                    <h6 class="mt-3 text-muted">No Tasks Available</h6>
+                    <p class="text-muted">This agent doesn't have any tasks configured yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Agent Knowledge & Instructions -->
+    {% if agent.agent_knowledge or agent.agent_instructions %}
+    <div class="row">
+        {% if agent.agent_knowledge %}
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-brain me-2"></i>Agent Knowledge
+                    </h5>
+                    <pre class="bg-light p-3 rounded small">{{ agent.agent_knowledge|safe }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if agent.agent_instructions %}
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-file-text me-2"></i>Agent Instructions
+                    </h5>
+                    <pre class="bg-light p-3 rounded small">{{ agent.agent_instructions|safe }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Agent Instances (if any) -->
+    {% if agent.instances.all %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-3">
+                <i class="bi bi-grid me-2"></i>Agent Instances
+                <span class="badge bg-primary ms-2">{{ agent.instances.count }}</span>
+            </h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Workspace</th>
+                            <th>Type</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instance in agent.instances.all %}
+                            <tr>
+                                <td>{{ instance.workspace.name }}</td>
+                                <td>
+                                    {% if instance.is_demo %}
+                                        <span class="badge bg-warning">Demo</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Live</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ instance.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .profile-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+    
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+    }
+    
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+{% endblock content %}

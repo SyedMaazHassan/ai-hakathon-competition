@@ -1,0 +1,9 @@
+{% extends 'authentication/auth_base.html' %}
+
+{% block title %}Logged Out{% endblock %}
+
+{% block content %}
+<div class="alert alert-info" role="alert">
+    You have been logged out. <a href="{% url 'login' %}">Log in again</a>.
+</div>
+{% endblock %}

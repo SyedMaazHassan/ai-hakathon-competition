@@ -1,0 +1,49 @@
+{% extends "core/new_base.html" %}
+
+{% block title %}Applications | Hire With AI{% endblock %}
+{% block current_page %}Applications{% endblock %}
+{% block page_title %}Job Applications{% endblock %}
+{% block page_subtitle %}Your generated applications and their analysis status{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="bg-card dark:bg-dark-card rounded-xl shadow-md border border-gray-200 dark:border-dark-border overflow-hidden">
+    <div class="px-6 py-4 border-b border-border-light dark:border-dark-border flex items-center justify-between">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white">Applications</h3>
+      <a href="{% url 'hiring:analysis' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">New Analysis</a>
+    </div>
+
+    <div class="px-6 py-5">
+      {% if applications %}
+      <div class="divide-y">
+        {% for app in applications %}
+          <div class="py-4 flex items-center justify-between">
+            <div class="space-y-1">
+              <p class="text-sm text-foreground">Application #{{ app.id }}</p>
+              <p class="text-xs text-muted-foreground">Job #{{ app.job.id }} • {{ app.resume.file.name|default:"Resume" }}</p>
+            </div>
+            <div class="text-right">
+              {% if app.job_fit_report %}
+                <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Completed</span>
+              {% else %}
+                <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Processing</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}
+        <p class="text-sm text-muted-foreground">No applications yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="flex justify-between items-center pt-6">
+    <a href="{% url 'hiring:analysis' %}" class="px-6 py-2 border rounded-md text-sm">Back</a>
+    <div class="text-sm text-muted-foreground">Step 4 of 4</div>
+    <a href="{% url 'hiring:job_create' %}" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">Start Over</a>
+  </div>
+</div>
+{% endblock %}
+
+

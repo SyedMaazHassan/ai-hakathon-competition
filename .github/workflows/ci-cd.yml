@@ -1,0 +1,46 @@
+name: Deploy to EC2 with SSH
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH (Load SSH Key)
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+      - name: SSH into EC2 and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          port: 22
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            echo "Adding GitHub to known hosts"
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+            echo "Stashing local changes if any..."
+            git stash || true  # This prevents failure if there are no changes to stash
+            echo "Changing remote URL to use SSH for GitHub"
+            git remote set-url origin git@github.com:Distack-Solutions/django-boiler-plate.git  # Use SSH URL
+            echo "Resetting repository to ensure no local changes"
+            git reset --hard
+            echo "Pulling the latest code..."
+            git pull origin main
+            chmod +x entrypoint.sh
+            echo "Stopping containers..."
+            docker-compose down || true  # This prevents failure if containers are not running
+            echo "Building images (no cache)..."
+            docker-compose build --no-cache
+            echo "Starting containers..."
+            docker-compose up -d

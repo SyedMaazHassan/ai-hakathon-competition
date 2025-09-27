@@ -1,0 +1,375 @@
+{% extends "core/new_base.html" %}
+{% load static %}
+
+{% block title %}{{ resume.metadata.personal_info.full_name|default:"Candidate" }} | Hire With AI{% endblock %}
+{% block current_page %}Candidates{% endblock %}
+{% block page_title %}{{ resume.metadata.personal_info.full_name|default:"Candidate" }}{% endblock %}
+{% block page_subtitle %}Candidate Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto" x-data="candidateDetailApp()" x-init="init()">
+  <!-- Header Section -->
+  <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm mb-6">
+    <div class="px-6 py-8">
+      <div class="flex items-start justify-between">
+        <div class="flex items-start space-x-6">
+          <!-- Avatar -->
+          <div class="h-24 w-24 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+            <span class="text-orange-600 dark:text-orange-400 font-bold text-2xl">
+              {% if resume.metadata.personal_info.full_name %}
+                {{ resume.metadata.personal_info.full_name|slice:":2"|upper }}
+              {% else %}
+                ??
+              {% endif %}
+            </span>
+          </div>
+          
+          <!-- Basic Info -->
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text mb-2">{{ resume.metadata.personal_info.full_name|default:"Unknown Candidate" }}</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-400 mb-4">{{ resume.metadata.personal_info.professional_title|default:"No title specified" }}</p>
+            
+            <!-- Contact Info -->
+            <div class="flex flex-wrap gap-6 text-sm text-gray-600 dark:text-gray-400">
+              {% if resume.metadata.contact_info.email %}
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="16" x="2" y="4" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+                <span>{{ resume.metadata.contact_info.email }}</span>
+              </div>
+              {% endif %}
+              {% if resume.metadata.contact_info.phone %}
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                <span>{{ resume.metadata.contact_info.phone }}</span>
+              </div>
+              {% endif %}
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>
+                  {% if resume.metadata.contact_info.city and resume.metadata.contact_info.country %}
+                    {{ resume.metadata.contact_info.city }}, {{ resume.metadata.contact_info.country }}
+                  {% elif resume.metadata.contact_info.city %}
+                    {{ resume.metadata.contact_info.city }}
+                  {% elif resume.metadata.contact_info.country %}
+                    {{ resume.metadata.contact_info.country }}
+                  {% else %}
+                    Not specified
+                  {% endif %}
+                </span>
+              </div>
+              {% if resume.metadata.contact_info.linkedin %}
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                  <rect width="4" height="12" x="2" y="9"/>
+                  <circle cx="4" cy="4" r="2"/>
+                </svg>
+                <a href="{{ resume.metadata.contact_info.linkedin }}" target="_blank" class="text-orange-600 hover:text-orange-700">{{ resume.metadata.contact_info.linkedin }}</a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex gap-2">
+          <a href="{{ resume.file.url }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            View Resume
+          </a>
+          <button class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+            Job Fit Analysis
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column - Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Professional Summary -->
+      {% if resume.metadata.personal_info.summary %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Professional Summary</h2>
+        </div>
+        <div class="px-6 py-4">
+          <p class="text-gray-700 dark:text-dark-text leading-relaxed">{{ resume.metadata.personal_info.summary }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Work Experience -->
+      {% if resume.metadata.work_experience %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Work Experience</h2>
+        </div>
+        <div class="divide-y divide-gray-200 dark:divide-dark-border">
+          {% for experience in resume.metadata.work_experience %}
+          <div class="px-6 py-6">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-dark-text">{{ experience.position }}</h3>
+                <p class="text-orange-600 dark:text-orange-400 font-medium">{{ experience.company }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {% if experience.start_date %}
+                    {% if experience.start_date.month %}
+                      {% if experience.start_date.month == 1 %}Jan{% elif experience.start_date.month == 2 %}Feb{% elif experience.start_date.month == 3 %}Mar{% elif experience.start_date.month == 4 %}Apr{% elif experience.start_date.month == 5 %}May{% elif experience.start_date.month == 6 %}Jun{% elif experience.start_date.month == 7 %}Jul{% elif experience.start_date.month == 8 %}Aug{% elif experience.start_date.month == 9 %}Sep{% elif experience.start_date.month == 10 %}Oct{% elif experience.start_date.month == 11 %}Nov{% elif experience.start_date.month == 12 %}Dec{% endif %} {{ experience.start_date.year }}
+                    {% else %}
+                      {{ experience.start_date.year }}
+                    {% endif %}
+                  {% else %}
+                    Not specified
+                  {% endif %}
+                  - 
+                  {% if experience.is_current %}
+                    Present
+                  {% elif experience.end_date %}
+                    {% if experience.end_date.month %}
+                      {% if experience.end_date.month == 1 %}Jan{% elif experience.end_date.month == 2 %}Feb{% elif experience.end_date.month == 3 %}Mar{% elif experience.end_date.month == 4 %}Apr{% elif experience.end_date.month == 5 %}May{% elif experience.end_date.month == 6 %}Jun{% elif experience.end_date.month == 7 %}Jul{% elif experience.end_date.month == 8 %}Aug{% elif experience.end_date.month == 9 %}Sep{% elif experience.end_date.month == 10 %}Oct{% elif experience.end_date.month == 11 %}Nov{% elif experience.end_date.month == 12 %}Dec{% endif %} {{ experience.end_date.year }}
+                    {% else %}
+                      {{ experience.end_date.year }}
+                    {% endif %}
+                  {% else %}
+                    Not specified
+                  {% endif %}
+                  {% if experience.location %} • {{ experience.location }}{% endif %}
+                </p>
+                {% if experience.industry %}<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ experience.industry }}</p>{% endif %}
+              </div>
+              {% if experience.employment_type %}
+              <div class="ml-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{ experience.employment_type }}</span>
+              </div>
+              {% endif %}
+            </div>
+            
+            {% if experience.responsibilities %}
+            <div class="mt-4">
+              <h4 class="text-sm font-medium text-gray-900 dark:text-dark-text mb-2">Key Responsibilities:</h4>
+              <ul class="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-dark-text">
+                {% for responsibility in experience.responsibilities %}
+                <li>{{ responsibility }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
+            {% if experience.achievements %}
+            <div class="mt-4">
+              <h4 class="text-sm font-medium text-gray-900 dark:text-dark-text mb-2">Key Achievements:</h4>
+              <ul class="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-dark-text">
+                {% for achievement in experience.achievements %}
+                <li>{{ achievement }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
+            {% if experience.technologies_used %}
+            <div class="mt-4">
+              <h4 class="text-sm font-medium text-gray-900 dark:text-dark-text mb-2">Technologies Used:</h4>
+              <div class="flex flex-wrap gap-2">
+                {% for tech in experience.technologies_used %}
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 dark:bg-dark-hover dark:text-dark-text">{{ tech }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Education -->
+      {% if resume.metadata.education %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Education</h2>
+        </div>
+        <div class="divide-y divide-gray-200 dark:divide-dark-border">
+          {% for edu in resume.metadata.education %}
+          <div class="px-6 py-6">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-dark-text">{{ edu.degree }}</h3>
+                <p class="text-orange-600 dark:text-orange-400 font-medium">{{ edu.institution }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {% if edu.start_date %}
+                    {% if edu.start_date.year %}{{ edu.start_date.year }}{% else %}Not specified{% endif %}
+                  {% else %}
+                    Not specified
+                  {% endif %}
+                  - 
+                  {% if edu.is_current %}
+                    Present
+                  {% elif edu.end_date %}
+                    {% if edu.end_date.year %}{{ edu.end_date.year }}{% else %}Not specified{% endif %}
+                  {% else %}
+                    Not specified
+                  {% endif %}
+                  {% if edu.location %} • {{ edu.location }}{% endif %}
+                </p>
+                {% if edu.field_of_study %}<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ edu.field_of_study }}</p>{% endif %}
+              </div>
+              {% if edu.gpa %}
+              <div class="ml-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  GPA: {{ edu.gpa }}
+                </span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Projects -->
+      {% if resume.metadata.projects %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Projects</h2>
+        </div>
+        <div class="divide-y divide-gray-200 dark:divide-dark-border">
+          {% for project in resume.metadata.projects %}
+          <div class="px-6 py-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-dark-text">{{ project.name }}</h3>
+            <p class="text-gray-700 dark:text-dark-text mt-2">{{ project.description }}</p>
+            {% if project.technologies %}
+            <div class="mt-4">
+              <div class="flex flex-wrap gap-2">
+                {% for tech in project.technologies %}
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 dark:bg-dark-hover dark:text-dark-text">{{ tech }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column - Sidebar -->
+    <div class="space-y-6">
+      <!-- Skills -->
+      {% if resume.metadata.technical_skills %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Technical Skills</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="flex flex-wrap gap-2">
+            {% for skill in resume.metadata.technical_skills %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">{{ skill.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Tools & Technologies -->
+      {% if resume.metadata.normalized_tools %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Tools & Technologies</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="flex flex-wrap gap-2">
+            {% for tool in resume.metadata.normalized_tools %}
+            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 dark:bg-dark-hover dark:text-dark-text">{{ tool }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Certifications -->
+      {% if resume.metadata.certifications %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Certifications</h2>
+        </div>
+        <div class="divide-y divide-gray-200 dark:divide-dark-border">
+          {% for cert in resume.metadata.certifications %}
+          <div class="px-6 py-4">
+            <h3 class="text-sm font-medium text-gray-900 dark:text-dark-text">{{ cert.name }}</h3>
+            <p class="text-sm text-orange-600 dark:text-orange-400">{{ cert.issuing_organization }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {% if cert.issue_date %}
+                {% if cert.issue_date.year %}{{ cert.issue_date.year }}{% else %}Not specified{% endif %}
+              {% else %}
+                Not specified
+              {% endif %}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Languages -->
+      {% if resume.metadata.languages %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Languages</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="space-y-3">
+            {% for lang in resume.metadata.languages %}
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-900 dark:text-dark-text">{{ lang.language }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 capitalize">{{ lang.proficiency }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Parsing Confidence -->
+      {% if resume.metadata.parsing_confidence %}
+      <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Profile Quality</h2>
+        </div>
+        <div class="px-6 py-4">
+          <div class="flex items-center gap-3">
+            <div 
+              class="h-3 w-3 rounded-full
+              {% if resume.metadata.parsing_confidence > 0.8 %}bg-green-500{% elif resume.metadata.parsing_confidence > 0.6 %}bg-yellow-500{% else %}bg-red-500{% endif %}"
+            ></div>
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+              {{ resume.metadata.parsing_confidence|floatformat:0 }}% confidence
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

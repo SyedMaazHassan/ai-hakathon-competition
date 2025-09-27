@@ -1,0 +1,369 @@
+{% extends "core/new_base.html" %}
+{% load static %}
+
+{% block title %}Candidates | Hire With AI{% endblock %}
+{% block current_page %}Candidates{% endblock %}
+{% block page_title %}Candidates{% endblock %}
+{% block page_subtitle %}Manage and evaluate candidate profiles{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto" x-data="candidateListApp()" x-init="init()">
+  <!-- Enhanced Header with Search and Filters -->
+  <div class="space-y-4 mb-6">
+    <!-- Top Row: Title and Actions -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-dark-text">Candidate Database</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          Manage and evaluate candidate profiles
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <button class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" x2="12" y1="15" y2="3"/>
+          </svg>
+          Export
+        </button>
+        <a href="{% url 'hiring:resumes_upload' %}" class="inline-flex items-center px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Add Candidate
+        </a>
+      </div>
+    </div>
+
+    <!-- Search and Filters Row -->
+    <div class="flex flex-col lg:flex-row gap-4">
+      <div class="relative flex-1 max-w-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input 
+          type="text" 
+          x-model="searchTerm"
+          placeholder="Search by name, email, title, or location..."
+          class="w-full h-9 pl-10 pr-3 rounded-md border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-card text-gray-900 dark:text-dark-text text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+        />
+      </div>
+     
+      <div class="flex gap-2">
+        <!-- Location Filter -->
+        <div class="relative" x-data="{ open: false }">
+          <button 
+            @click="open = !open"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            <span x-text="selectedFilter === 'all' ? 'All Locations' : selectedFilter === 'local' ? 'Local' : 'International'"></span>
+          </button>
+          <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <button @click="selectedFilter = 'all'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">All Locations</button>
+              <button @click="selectedFilter = 'local'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Local (Pakistan)</button>
+              <button @click="selectedFilter = 'international'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">International</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience Filter -->
+        <div class="relative" x-data="{ open: false }">
+          <button 
+            @click="open = !open"
+            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            <span x-text="experienceFilter === 'all' ? 'All Experience' : experienceFilter + ' Level'"></span>
+          </button>
+          <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <button @click="experienceFilter = 'all'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">All Experience</button>
+              <button @click="experienceFilter = 'entry'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Entry Level (0-2 years)</button>
+              <button @click="experienceFilter = 'mid'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Mid Level (2-5 years)</button>
+              <button @click="experienceFilter = 'senior'; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Senior Level (5+ years)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+   
+    <!-- Results Summary -->
+    <div class="flex items-center justify-between text-sm">
+      <span class="text-gray-600 dark:text-gray-400">
+        Showing <span x-text="startIndex + 1"></span>-<span x-text="Math.min(startIndex + itemsPerPage, filteredCandidates.length)"></span> of <span x-text="filteredCandidates.length"></span> candidates
+      </span>
+      <div class="flex items-center gap-2">
+        <span class="text-gray-600 dark:text-gray-400">Show:</span>
+        <div class="relative" x-data="{ open: false }">
+          <button @click="open = !open" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover">
+            <span x-text="itemsPerPage"></span>
+          </button>
+          <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-20 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <button @click="itemsPerPage = 10; currentPage = 1; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">10</button>
+              <button @click="itemsPerPage = 25; currentPage = 1; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">25</button>
+              <button @click="itemsPerPage = 50; currentPage = 1; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">50</button>
+              <button @click="itemsPerPage = 100; currentPage = 1; open = false" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">100</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Candidates Table -->
+  <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-lg shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-dark-border bg-gray-50 dark:bg-dark-hover">
+            <th class="w-[300px] px-6 py-3 text-left">
+              <button 
+                @click="handleSort('full_name')"
+                class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-dark-text"
+              >
+                Candidate
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M7 12h10"/>
+                  <path d="M10 18h4"/>
+                </svg>
+              </button>
+            </th>
+            <th class="px-6 py-3 text-left">Contact</th>
+            <th class="px-6 py-3 text-left">
+              <button 
+                @click="handleSort('city')"
+                class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-dark-text"
+              >
+                Location
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M7 12h10"/>
+                  <path d="M10 18h4"/>
+                </svg>
+              </button>
+            </th>
+            <th class="px-6 py-3 text-left">
+              <button 
+                @click="handleSort('professional_title')"
+                class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-dark-text"
+              >
+                Title
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M7 12h10"/>
+                  <path d="M10 18h4"/>
+                </svg>
+              </button>
+            </th>
+            <th class="px-6 py-3 text-left">
+              <button 
+                @click="handleSort('created_at')"
+                class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-dark-text"
+              >
+                Added
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M7 12h10"/>
+                  <path d="M10 18h4"/>
+                </svg>
+              </button>
+            </th>
+            <th class="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Alpine.js version -->
+          <template x-for="candidate in paginatedCandidates" :key="candidate.id">
+            <tr class="border-b border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-hover cursor-pointer transition-colors duration-150" @click="viewCandidate(candidate.id)">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+                    <span class="text-orange-600 dark:text-orange-400 font-medium text-sm" x-text="getInitials(candidate.full_name)"></span>
+                  </div>
+                  <div>
+                    <div class="font-medium text-gray-900 dark:text-dark-text hover:text-orange-600 dark:hover:text-orange-400 transition-colors" x-text="candidate.full_name || 'Unknown Candidate'"></div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400" x-text="candidate.professional_title || 'No title specified'"></div>
+                    <div x-show="candidate.parsing_confidence" class="flex items-center gap-1 mt-1">
+                      <div 
+                        class="h-2 w-2 rounded-full"
+                        :class="candidate.parsing_confidence > 0.8 ? 'bg-green-500' : candidate.parsing_confidence > 0.6 ? 'bg-yellow-500' : 'bg-red-500'"
+                      ></div>
+                      <span class="text-xs text-gray-500 dark:text-gray-400" x-text="Math.round(candidate.parsing_confidence * 100) + '% confidence'"></span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="space-y-1">
+                  <div x-show="candidate.email" class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="20" height="16" x="2" y="4" rx="2"/>
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                    </svg>
+                    <span class="text-xs text-gray-600 dark:text-gray-400" x-text="candidate.email"></span>
+                  </div>
+                  <div x-show="candidate.phone" class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    <span class="text-xs text-gray-600 dark:text-gray-400" x-text="candidate.phone"></span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 dark:text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span class="text-sm text-gray-900 dark:text-dark-text" x-text="getLocationText(candidate)"></span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-500 dark:text-gray-400" x-text="candidate.professional_title || 'Not specified'"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-gray-500 dark:text-gray-400" x-text="formatDate(candidate.created_at)"></div>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="relative" x-data="{ open: false }">
+                  <button 
+                    @click.stop="open = !open"
+                    class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="1"/>
+                      <circle cx="19" cy="12" r="1"/>
+                      <circle cx="5" cy="12" r="1"/>
+                    </svg>
+                  </button>
+                  <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-md shadow-lg z-10">
+                    <div class="py-1">
+                      <button @click="viewCandidate(candidate.id); open = false" class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        View Profile
+                      </button>
+                      <button @click="jobFitAnalysis(candidate.id); open = false" class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                        Job Fit Analysis
+                      </button>
+                      <button @click="editCandidate(candidate.id); open = false" class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Edit Profile
+                      </button>
+                      <button @click="deleteCandidate(candidate.id); open = false" class="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Delete Profile
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </template>
+          
+          <!-- Empty State -->
+          <tr x-show="paginatedCandidates.length === 0">
+            <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+              <div x-show="filteredCandidates.length === 0">
+                <div class="text-gray-500 dark:text-gray-400 mb-2">No candidates found matching your criteria.</div>
+                <button 
+                  x-show="searchTerm"
+                  @click="searchTerm = ''"
+                  class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Clear search
+                </button>
+                <div x-show="!searchTerm" class="mt-4">
+                  <a href="{% url 'hiring:resumes_upload' %}" class="text-orange-600 hover:text-orange-700">Upload resumes to get started</a>
+                </div>
+              </div>
+              <div x-show="filteredCandidates.length > 0">No candidates on this page.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Enhanced Pagination -->
+  <div x-show="totalPages > 1" class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-dark-border">
+    <div class="text-sm text-gray-500 dark:text-gray-400">
+      Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button 
+        @click="handlePageChange(currentPage - 1)"
+        :disabled="currentPage === 1"
+        class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Previous
+      </button>
+     
+      <!-- Page numbers -->
+      <div class="flex gap-1">
+        <template x-for="pageNum in getPageNumbers()" :key="pageNum">
+          <button 
+            @click="handlePageChange(pageNum)"
+            class="w-8 h-8 p-0 text-sm font-medium rounded"
+            :class="currentPage === pageNum ? 'bg-orange-600 text-white' : 'border border-gray-300 dark:border-dark-border text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover'"
+            x-text="pageNum"
+          ></button>
+        </template>
+      </div>
+     
+      <button 
+        @click="handlePageChange(currentPage + 1)"
+        :disabled="currentPage === totalPages"
+        class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md text-sm font-medium text-gray-700 dark:text-dark-text bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Next
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pass candidates data from Django to JavaScript
+  window.candidatesData = [
+    {% for resume in resumes %}
+    {
+      id: {{ resume.id }},
+      full_name: "{{ resume.metadata.personal_info.full_name|default:""|escapejs }}",
+      email: "{{ resume.metadata.contact_info.email|default:""|escapejs }}",
+      phone: "{{ resume.metadata.contact_info.phone|default:""|escapejs }}",
+      city: "{{ resume.metadata.contact_info.city|default:""|escapejs }}",
+      country: "{{ resume.metadata.contact_info.country|default:""|escapejs }}",
+      professional_title: "{{ resume.metadata.personal_info.professional_title|default:""|escapejs }}",
+      total_years_experience: {{ resume.metadata.work_experience.0.total_years|default:"null" }},
+      created_at: "{{ resume.created_at|date:"c" }}",
+      parsing_confidence: {{ resume.metadata.parsing_confidence|default:"null" }}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+</script>
+<script src="{% static 'js/candidates_list.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+        html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
+
+        /* Custom styles for the active menu state */
+        .bg-menu-active {
+            background-color: #EE7C2B;
+        }
+        .text-menu-text {
+            color: #4B5563;
+        }
+        .hover\:bg-menu-hover:hover {
+            background-color: #F3F4F6;
+        }
+        .hover\:text-black:hover {
+            color: #000000;
+        }
+        .text-menu-icon {
+            color: #6B7280;
+        }
+        .dark .dark\:bg-dark-hover {
+            background-color: #374151;
+        }
+        .dark .dark\:text-dark-text {
+            color: #D1D5DB;
+        }
+        .dark .dark\:hover\:bg-dark-hover:hover {
+            background-color: #374151;
+        }
+        .dark .dark\:hover\:text-white:hover {
+            color: #FFFFFF;
+        }
+
+        /* Professional Dropdown Fixes */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            min-width: 12rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            overflow: hidden;
+        }
+        
+        .dark .dropdown-menu {
+            background: #1f2937;
+            border-color: #374151;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.875rem;
+            color: #374151;
+            background: transparent;
+            border: none;
+            transition: background-color 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f9fafb;
+        }
+        
+        .dark .dropdown-item {
+            color: #d1d5db;
+        }
+        
+        .dark .dropdown-item:hover {
+            background-color: #374151;
+        }
+        
+        .dropdown-item.danger {
+            color: #dc2626;
+        }
+        
+        .dark .dropdown-item.danger {
+            color: #f87171;
+        }
+        
+        .dropdown-item.danger:hover {
+            background-color: #fef2f2;
+        }
+        
+        .dark .dropdown-item.danger:hover {
+            background-color: #7f1d1d;
+        }
+        
+        .dropdown-trigger {
+            padding: 0.5rem;
+            color: #9ca3af;
+            background: transparent;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .dropdown-trigger:hover {
+            color: #6b7280;
+            background-color: #f9fafb;
+        }
+        
+        .dark .dropdown-trigger {
+            color: #6b7280;
+        }
+        
+        .dark .dropdown-trigger:hover {
+            color: #d1d5db;
+            background-color: #374151;
+        }
+        
+        /* Prevent body scroll when dropdown is open */
+        body.dropdown-open {
+            overflow: hidden;
+        }
+        
+        /* Ensure dropdowns appear above other content */
+        .dropdown-menu {
+            z-index: 9999 !important;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.12.0/cdn.min.js" defer></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#EE7C2B'
+                        },
+                        gray: {
+                            50: '#FAFAFA',
+                            100: '#F5F5F5',
+                            200: '#E2E4E9',
+                            300: '#D3D7DE',
+                            400: '#757C8A',
+                            700: '#22252A',
+                        },
+                        'dark-bg': '#121212',
+                        'dark-card': '#1E1E1E',
+                        'dark-hover': '#2A2A2A',
+                        'dark-border': '#333333',
+                        'dark-text': '#E0E0E0'
+                    }
+                }
+            }
+        }
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen bg-gray-50 dark:bg-dark-bg text-gray-700 dark:text-dark-text" x-data="{ sidebarOpen: false, darkMode: document.documentElement.classList.contains('dark'), toggleDarkMode(){ this.darkMode = !this.darkMode; localStorage.theme = this.darkMode ? 'dark' : 'light'; document.documentElement.classList.toggle('dark', this.darkMode) } }">
+    <div class="flex h-screen">
+        <div x-cloak x-show="sidebarOpen" @click="sidebarOpen=false" class="fixed inset-0 z-20 bg-black/40 lg:hidden"></div>
+        <aside :class="{'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen}" class="fixed z-30 lg:z-10 lg:static left-0 top-0 h-full w-64 bg-white border-r border-gray-200 transition-transform duration-200 lg:translate-x-0 dark:bg-dark-card dark:border-dark-border">
+            <div class="h-16 px-4 flex items-center">
+                <div class="w-6 h-6 rounded bg-[color:var(--brand,#EE7C2B)] flex items-center justify-center" style="--brand:#EE7C2B">
+                    <i class="fa-solid fa-briefcase text-white text-xs"></i>
+                </div>
+                <span class="ml-2 font-semibold dark:text-white">Hire With AI</span>
+            </div>
+            <div class="px-3 text-xs text-gray-500 font-medium dark:text-gray-400">Main Menu</div>
+            <nav class="mt-2 px-2 space-y-1">
+                <a href="/" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if request.path == '/' %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-table-cells-large w-5 mr-3 text-center {% if request.path == '/' %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Dashboard</span>
+                </a>
+
+                <a href="{% url 'jobs:jobs_list' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'jobs' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-briefcase w-5 mr-3 text-center {% if 'jobs' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Jobs</span>
+                </a>
+
+                <a href="{% url 'hiring:resumes_list' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'resumes' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-users w-5 mr-3 text-center {% if 'resumes' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Candidates</span>
+                </a>
+
+                <a href="{% url 'hiring:job_fit_reports' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'reports' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-chart-column w-5 mr-3 text-center {% if 'reports' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Reports</span>
+                </a>
+            </nav>
+            <div class="mt-4 px-3 text-xs text-gray-500 font-medium dark:text-gray-400">Quick Actions</div>
+            <nav class="mt-2 px-2 space-y-1">
+                <a href="{% url 'jobs:job_create' %}" class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+                   {% if 'jobs/create' in request.path %}
+                     bg-menu-active text-white dark:bg-dark-hover dark:text-white
+                   {% else %}
+                     text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+                   {% endif %}">
+                  <i class="fas fa-plus w-5 mr-3 text-center {% if 'create' in request.path %}text-white dark:text-white{% else %} text-menu-icon dark:text-dark-text{% endif %}"></i>
+                  <span class="flex-1">Create Job</span>
+                </a>
+                <a href="{% url 'logout' %}"
+   class="group flex items-center p-3 mb-1 text-sm font-medium rounded-full transition-colors
+          {% if 'logout' in request.path %}
+            bg-menu-active text-white dark:bg-dark-hover dark:text-white
+          {% else %}
+            text-menu-text hover:bg-menu-hover hover:text-black dark:text-dark-text dark:hover:bg-dark-hover dark:hover:text-white
+          {% endif %}">
+  <i class="fas fa-sign-out-alt w-5 mr-3 text-center
+            {% if 'logout' in request.path %}
+              text-white dark:text-white
+            {% else %}
+              text-menu-icon dark:text-dark-text
+            {% endif %}"></i>
+  <span class="flex-1">Logout</span>
+</a>
+
+            </nav>
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+                <a href="{% url 'profile' %}"
+  class="w-full h-8 px-3 rounded text-xs border border-gray-200 flex items-center gap-2
+         dark:border-dark-border dark:text-dark-text">
+    <i class="fa-solid fa-gear text-gray-500 text-xs dark:text-gray-400"></i>
+    Settings
+</a>
+
+            </div>
+        </aside>
+        <div class="flex-1 flex flex-col min-w-0">
+            <header class="backdrop-blur bg-white/80 border-b border-gray-200 dark:bg-dark-card/80 dark:border-dark-border">
+                <div class="max-w-6xl mx-auto h-16 px-6 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <button @click="sidebarOpen=true" class="lg:hidden text-gray-600 dark:text-gray-300">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded bg-[color:var(--brand,#EE7C2B)] flex items-center justify-center" style="--brand:#EE7C2B">
+                                <i class="fa-solid fa-building text-white text-sm"></i>
+                            </div>
+                            <h1 class="text-lg font-semibold dark:text-white">Hire With AI</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button class="w-9 h-9 rounded flex items-center justify-center text-gray-700 dark:text-gray-300">
+                            <i class="fa-regular fa-bell"></i>
+                        </button>
+                        <button @click="toggleDarkMode()" class="w-9 h-9 rounded flex items-center justify-center text-gray-700 dark:text-gray-300">
+                            <i x-show="!darkMode" class="fa-regular fa-moon"></i>
+                            <i x-show="darkMode" class="fa-regular fa-sun"></i>
+                        </button>
+                        <div class="flex items-center gap-3">
+    <!-- User Name & Email -->
+    <div class="text-right hidden sm:block">
+        <p class="text-sm font-medium dark:text-white">
+            {{ request.user.get_full_name|default:request.user.email }}
+        </p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+            {{ request.user.email }}
+        </p>
+    </div>
+
+    <!-- Profile Picture or Initial -->
+    <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden dark:bg-gray-700">
+        {% if request.user.profile_picture %}
+            <img src="{{ request.user.profile_picture.url }}"
+                 alt="Profile Picture"
+                 class="w-full h-full object-cover rounded-full">
+        {% else %}
+            <span class="text-gray-600 text-sm font-semibold dark:text-gray-300">
+                {{ request.user.email|first|upper }}
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+                    </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-auto">
+                <div class="max-w-6xl mx-auto px-6 py-6">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+
+    {% if messages %}
+    <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" x-transition.opacity class="fixed bottom-6 right-6 z-50 w-auto max-w-xs space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-2 px-4 py-3 rounded-md shadow border text-sm {% if message.tags == 'success' %} bg-green-50 text-green-800 border-green-300 {% elif message.tags == 'error' %} bg-red-50 text-red-800 border-red-300 {% elif message.tags == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-300 {% else %} bg-white text-gray-800 border-gray-200 {% endif %}">
+            {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle text-green-600"></i>
+            {% elif message.tags == 'error' %}
+            <i class="fas fa-times-circle text-red-600"></i>
+            {% elif message.tags == 'warning' %}
+            <i class="fas fa-exclamation-circle text-yellow-600"></i>
+            {% else %}
+            <i class="fas fa-info-circle text-gray-600"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+</body>
+</html>

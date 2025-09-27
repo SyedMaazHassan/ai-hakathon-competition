@@ -1,0 +1,89 @@
+services:
+  web:  # Django application
+    build: .
+    ports:
+      - "${HOST_MACHINE_PORT}:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis   # Celery broker
+    volumes:
+      - .:/app  # Mount the whole project directory (including staticfiles and media)
+      - ./staticfiles:/app/staticfiles  # Mount static files directory for Nginx
+      - ./media:/app/media  # Mount media directory for uploaded files
+    restart: always  # Restart the container if it crashes
+    command: >
+      sh -c "
+      if [ \"$DEBUG\" = \"True\" ]; then
+        python manage.py runserver 0.0.0.0:8000;
+      else
+        gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3;
+      fi
+      "
+
+  celery:  # Celery worker
+    build: .
+    command: celery -A config worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - db
+      - redis
+    volumes:
+      - .:/app
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    restart: always
+
+  celery-beat:  # Celery beat scheduler (for periodic tasks)
+    build: .
+    command: celery -A config beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - db
+      - redis
+    volumes:
+      - .:/app
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    restart: always
+
+  redis:  # Redis broker for Celery
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  nginx:  # Nginx for reverse proxy and static file serving
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+      - /home/ubuntu/certs:/etc/ssl/private:ro
+    depends_on:
+      - web
+
+  db:  # PostgreSQL database
+    image: postgres:15
+    environment:
+      POSTGRES_USER: django
+      POSTGRES_PASSWORD: django
+      POSTGRES_DB: django_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  redis_data:

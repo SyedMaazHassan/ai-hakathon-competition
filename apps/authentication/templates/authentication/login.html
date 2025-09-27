@@ -1,0 +1,100 @@
+{% extends 'authentication/auth_base.html' %}
+{% load django_bootstrap5 %}
+{% load static %}
+{% block title %}Login | Hire With AI{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="row g-0">
+        <!-- Left Panel with Branding -->
+        <div class="col-md-6 auth-left-panel">
+            <div class="brand-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    <rect width="20" height="14" x="2" y="6" rx="2"></rect>
+                </svg>
+            </div>
+            <h2 class="fw-bold mb-3">Hire With AI</h2>
+            <p class="text-center text-muted">AI-powered hiring solutions for modern recruiters</p>
+        </div>
+
+        <!-- Right Panel with Login Form -->
+        <div class="col-md-6 p-5">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Sign in to your account</h2>
+                <p class="text-muted">Welcome back! Please login to your account</p>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in field.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                    <label class="form-check-label" for="remember-me">Remember me</label>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'password_reset' %}" class="auth-link">Forgot your password?</a>
+            </div>
+
+            <div class="text-center mt-3">
+                <p class="mb-0">
+                    Don't have an account?
+                    <a href="{% url 'signup' %}" class="auth-link">Sign up here</a>
+                </p>
+            </div>
+
+            <div class="text-center mt-4 pt-3 border-top">
+                <small class="text-muted">&copy; Hire With AI {% now "Y" %}. All rights reserved.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-light);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(238, 124, 43, 0.25);
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+    }
+
+    .btn-primary {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
