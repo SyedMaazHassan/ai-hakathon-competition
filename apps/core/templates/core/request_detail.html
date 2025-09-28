@@ -58,6 +58,17 @@
                 </div>
 
                 <div class="flex justify-between text-sm">
+                    <span class="text-gray-500 font-medium">Confidence Score:</span>
+                    <span class="text-gray-700 font-semibold">
+                        {% if citizen_request.confidence_score %}
+                            {{ citizen_request.confidence_score|floatformat:2 }} ({{ citizen_request.confidence_score }}%)
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="flex justify-between text-sm">
                     <span class="text-gray-500 font-medium">Assigned To:</span>
                     <span class="text-gray-700 font-semibold">
                         {% if citizen_request.assigned_department %}
@@ -67,12 +78,54 @@
                         {% endif %}
                     </span>
                 </div>
+
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500 font-medium">Triage Source:</span>
+                    <span class="text-gray-700 font-semibold">{{ citizen_request.get_triage_source_display|default:"AI Analysis" }}</span>
+                </div>
+
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-500 font-medium">Emergency Flag:</span>
+                    <span class="text-gray-700 font-semibold">
+                        {% if citizen_request.is_emergency %}
+                            <span class="text-red-600 font-bold">Yes</span>
+                        {% else %}
+                            No
+                        {% endif %}
+                    </span>
+                </div>
             </div>
 
             <div class="mt-4 p-3 bg-gray-50 rounded-lg">
                 <p class="text-sm text-gray-700">{{ citizen_request.request_text }}</p>
             </div>
         </div>
+
+        <!-- AI Analysis Response -->
+        {% if citizen_request.ai_response %}
+        <div class="bg-white p-5 border border-gray-200 rounded-xl shadow-lg mb-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <i class="bi bi-robot text-xl text-purple-600"></i>
+                <h2 class="text-lg font-semibold text-gray-800">
+                    AI Analysis
+                </h2>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                <div class="flex items-start">
+                    <i class="bi bi-lightbulb-fill text-lg text-purple-500 mr-3 mt-0.5 flex-shrink-0"></i>
+                    <div class="text-sm text-purple-800">
+                        <p class="font-medium mb-2">AI Assessment:</p>
+                        <p class="leading-relaxed">{{ citizen_request.ai_response }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
+                <span>Source: {{ citizen_request.get_triage_source_display }}</span>
+            </div>
+        </div>
+        {% endif %}
 
         {% if latest_appointment %}
         <div class="bg-white p-5 border border-gray-200 rounded-xl shadow-lg mb-6">

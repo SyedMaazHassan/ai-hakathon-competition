@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
@@ -221,7 +223,8 @@ class DepartmentEntityAdmin(admin.ModelAdmin):
 class CitizenRequestAdmin(admin.ModelAdmin):
     list_display = (
         'case_code', 'user_link', 'category', 'urgency_badge', 'status_badge',
-        'is_emergency', 'assigned_department', 'created_at', 'confidence_score'
+        'is_emergency', 'assigned_department', 'created_at', 'confidence_score',
+        'formatted_output_json'
     )
     list_filter = (
         'status', 'category', UrgencyFilter, EmergencyFilter, RecentFilter,
@@ -253,7 +256,16 @@ class CitizenRequestAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at', 'resolved_at', 'expected_response_time')
         }),
     )
+    def formatted_output_json(self, obj):
+        if not obj.output_json:
+            return "-"
+        # Pretty-print JSON, truncated for display
+        pretty = json.dumps(obj.output_json, indent=2)
+        if len(pretty) > 80:
+            pretty = pretty[:77] + "..."
+        return format_html('<pre>{}</pre>', pretty)
 
+    formatted_output_json.short_description = "Next Steps / Output JSON"
     def user_link(self, obj):
         url = reverse('admin:authentication_customuser_change', args=[obj.user.pk])
         return format_html('<a href="{}">{}</a>', url, obj.user.get_full_name())

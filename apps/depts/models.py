@@ -151,6 +151,7 @@ class CitizenRequest(BaseModel):
     # Flags
     degraded_mode_used = models.BooleanField(default=False)  # If AI failed, used fallback
     is_emergency = models.BooleanField(default=False)  # For quick filtering
+    output_json = models.JSONField(default=dict, blank=True)
     
     class Meta:
         indexes = [

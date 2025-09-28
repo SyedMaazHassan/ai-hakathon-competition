@@ -15,6 +15,7 @@ from apps.depts.models import (
     CitizenRequest, ActionLog, Department, DepartmentEntity,
     CitizenRequestAssignment, EmergencyCall, Appointment
 )
+from apps.depts.tasks import process_emergency_request_task
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -325,95 +326,58 @@ class SubmitEmergencyRequestView(View):
 
     def post(self, request):
         try:
-            # Get form data (emergency_type is now optional)
-            emergency_type = request.POST.get('emergency_type')
-            location = request.POST.get('location')
-            description = request.POST.get('description')
-            latitude = request.POST.get('latitude')
-            longitude = request.POST.get('longitude')
-            print("Data: ", request.POST)
-            # Validate required fields (emergency_type is optional)
-            if not all([location, description, latitude, longitude]):
-                messages.error(request, 'Please fill in all required fields.')
-                return render(request, 'core/emergency_request_form.html')
+            # Get form data
+            emergency_type = request.POST.get('emergency_type', 'GENERAL')
+            location = request.POST.get('location', '')
+            description = request.POST.get('description', '')
+            latitude = request.POST.get('latitude', '')
+            longitude = request.POST.get('longitude', '')
 
-            # Generate unique case code
-            case_code = self.generate_case_code()
+            print("Received emergency request data: ", {
+                'emergency_type': emergency_type,
+                'location': location,
+                'description': description,
+                'latitude': latitude,
+                'longitude': longitude,
+                'email': self.request.user.email
+            })
 
-            # Map emergency type to category (optional)
-            category_map = {
-                'health': 'Medical Emergency',
-                'police': 'Police Assistance',
-                'fire': 'Fire Emergency',
-                'govt': 'Government Services'
+            # Prepare request data for Celery task
+            request_data = {
+                'emergency_type': emergency_type,
+                'location': location,
+                'request_text': description,
+                'latitude': latitude,
+                'longitude': longitude,
+                'reported_by': f"{request.user.get_full_name() or request.user.email}",
+                'urgency_level': 'HIGH',
+                'user_name': self.request.user.get_full_name(),
+                'user_id' : self.request.user.id,
+
+                'user_email': self.request.user.email
             }
 
-            category = category_map.get(emergency_type, 'General Emergency')
+            # Start Celery task asynchronously (no user_id needed)
+            task = process_emergency_request_task.delay(request_data=request_data)
 
-            # Create CitizenRequest
-            citizen_request = CitizenRequest.objects.create(
-                user=request.user,
-                case_code=case_code,
-                category=category,
-                description=description,
-                location=location,
-                latitude=latitude,
-                longitude=longitude,
-                status='pending'
-            )
+            # Store task ID in session for status checking
+            request.session['emergency_task_id'] = task.id
 
-            # Find appropriate department based on emergency type (optional)
-            department = self.get_department_for_emergency(emergency_type)
+            print(f"Celery task started with ID: {task.id}")
 
-            if department:
-                # Create EmergencyCall
-                emergency_call = EmergencyCall.objects.create(
-                    citizen_request=citizen_request,
-                    department=department,
-                    phone_number=request.user.phone_number if hasattr(request.user, 'phone_number') else '',
-                    status='dispatched'
-                )
-
-            messages.success(request, f'Emergency request submitted successfully! Case Code: {case_code}')
+            messages.success(request, 'Emergency request submitted successfully! Processing your request...')
             return redirect('emergency_request_success')
 
         except Exception as e:
+            print(f"Error submitting emergency request: {str(e)}")
             messages.error(request, 'An error occurred while submitting your request. Please try again.')
-            return render(request, 'core/emergency_request_form.html')
-
-    def generate_case_code(self):
-        """Generate unique case code like C-ABC123XY"""
-        while True:
-            letters = ''.join(random.choices(string.ascii_uppercase, k=4))
-            numbers = ''.join(random.choices(string.digits, k=4))
-            case_code = f"C-{letters}{numbers}"
-
-            if not CitizenRequest.objects.filter(case_code=case_code).exists():
-                return case_code
-
-    def get_department_for_emergency(self, emergency_type):
-        """Get appropriate department based on emergency type (optional)"""
-        if not emergency_type:
-            return Department.objects.first()  # Default department
-
-        department_map = {
-            'health': 'Ambulance Service',
-            'police': 'Police Department',
-            'fire': 'Fire Department',
-            'govt': 'Government Services'
-        }
-
-        department_name = department_map.get(emergency_type)
-        if department_name:
-            try:
-                return Department.objects.filter(name__icontains=department_name).first()
-            except Department.DoesNotExist:
-                return Department.objects.first()  # Fallback to first department
-        return None
+            return render(request, 'core/emergency_request_form.html', {
+                'GOOGLE_MAPS_API_KEY': settings.GOOGLE_MAPS_API_KEY
+            })
 
 class EmergencyRequestSuccessView(View):
     def get(self, request):
-        return render(request, 'emergency_request_success.html')
+        return render(request, 'core/emergency_request_success.html')
 
 
 from django.views.generic import ListView

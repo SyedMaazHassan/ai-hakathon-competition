@@ -653,7 +653,13 @@ class EmergencyPipelineService:
                 case_code=case_code
             )
 
-            return self.next_steps_service.generate_next_steps(next_steps_input)
+            next_steps = self.next_steps_service.generate_next_steps(next_steps_input)
+            next_steps_dict = next_steps.model_dump()
+            citizen_request.output_json = next_steps_dict
+            print(next_steps_dict)
+            logger.info(f"Next Steps Generated: {next_steps_dict}")
+            citizen_request.save(update_fields=["output_json"])
+            return next_steps
 
         except Exception as e:
             logger.error(f"Next Steps Agent failed: {str(e)}")

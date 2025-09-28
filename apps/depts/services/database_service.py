@@ -49,7 +49,6 @@ class EmergencyDatabaseService:
                 defaults={
                     'first_name': request_data.get('user_name', 'Anonymous'),
                     'last_name': "User",
-                    'phone': request_data.get('user_phone', ''),
                     'is_active': True
                 }
             )
