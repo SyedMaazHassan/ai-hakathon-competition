@@ -18,6 +18,7 @@ from apps.depts.agents.department_orchestrator_agent.pydantic_models import Depa
 from apps.depts.services.matcher_service import EntityInfo
 from apps.depts.agents.router_agent.pydantic_models import RouterDecision
 from apps.depts.choices import ActionType, UrgencyLevel, CallStatus, AppointmentStatus
+from apps.depts.services.actions.vapi_call_agent import EmergencyCallAgent
 
 # =============================================================================
 # TRIGGER-SPECIFIC ACTION TYPES (synced with database)
@@ -98,6 +99,7 @@ class TriggerOrchestratorInput(BaseModel):
     router_decision: RouterDecision
     user_phone: Optional[str] = None
     user_email: Optional[str] = None
+    user_name: Optional[str] = None
     user_coordinates: Optional[Dict[str, float]] = None
 
 class TriggerOrchestratorOutput(BaseModel):
@@ -126,7 +128,8 @@ class TriggerOrchestratorService:
         router_decision: RouterDecision,
         user_phone: str = None,
         user_email: str = None,
-        user_coordinates: Dict[str, float] = None
+        user_coordinates: Dict[str, float] = None,
+        user_name: str = None
     ) -> List[TriggerAction]:
         """Map criticality to intelligent action combinations"""
 
@@ -149,16 +152,34 @@ class TriggerOrchestratorService:
                     max_duration_minutes=3
                 ))
 
+                call_agent = EmergencyCallAgent()
+
+                # Make an emergency call
+                call_result = call_agent.make_emergency_call(
+                    phone_number=entity_info.phone,
+                    call_reason=department_output.request_plan.incident_summary,
+                    additional_context={
+                        "case_code": department_output.request_plan.case_code,
+                        "emergency_type": department_output.request_plan.incident_summary,
+                        "location": department_output.request_plan.location_details,
+                        "urgency_level": department_output.criticality,
+                        "additional_notes": department_output.request_plan.additional_context
+                    }
+                )
+                print(call_result)
+
+
             # 2. Emergency SMS to user
             if user_phone:
+                user_greeting = f"Hello {user_name}, " if user_name else ""
                 actions.append(SMSAction(
                     priority=ActionPriority.IMMEDIATE,
                     title="Citizen Emergency SMS",
                     description="Immediate confirmation and instructions",
                     estimated_duration="30 seconds",
                     recipient_phone=user_phone,
-                    message=f"🚨 EMERGENCY LOGGED: {entity_info.name} contacted immediately. "
-                           f"Stay safe. Help arriving soon. Ref: {entity_info.id[:8]}"
+                    message=f"🚨 {user_greeting}EMERGENCY LOGGED: {entity_info.name} has been contacted immediately. "
+                           f"Stay safe. Help is on the way. Ref: {entity_info.id[:8]}"
                 ))
 
             # 3. Email alert to department for documentation
@@ -173,9 +194,34 @@ class TriggerOrchestratorService:
                     body=f"CRITICAL EMERGENCY REPORT\\n\\n"
                          f"Incident: {department_output.request_plan.incident_summary}\\n"
                          f"Location: {department_output.request_plan.location_details}\\n"
-                         f"Contact: {user_phone or user_email}\\n"
+                         f"Contact: {user_name or 'Citizen'} - {user_phone or user_email}\\n"
                          f"Additional Context: {department_output.request_plan.additional_context}\\n"
                          f"Response Required: {department_output.request_plan.required_response}"
+                ))
+
+            # 3b. User alert email with action plan (CRITICAL level)
+            if user_email:
+                immediate_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.immediate_actions])
+                follow_up_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.follow_up_actions])
+
+                actions.append(EmailAction(
+                    priority=ActionPriority.URGENT,
+                    title="Critical Emergency Action Plan",
+                    description=f"Action plan details for {user_name or 'Citizen'}",
+                    estimated_duration="30 seconds",
+                    recipient_email=user_email,
+                    subject=f"🚨 CRITICAL EMERGENCY - Action Plan for Your Request",
+                    body=f"Dear {user_name or 'Citizen'},\\n\\n"
+                         f"🚨 CRITICAL EMERGENCY RESPONSE ACTIVATED\\n\\n"
+                         f"Your emergency: {department_output.request_plan.incident_summary}\\n"
+                         f"Location: {department_output.request_plan.location_details}\\n\\n"
+                         f"IMMEDIATE ACTIONS BEING TAKEN:\\n{immediate_steps}\\n\\n"
+                         f"FOLLOW-UP ACTIONS PLANNED:\\n{follow_up_steps}\\n\\n"
+                         f"Estimated Resolution: {department_output.action_plan.estimated_resolution_time}\\n\\n"
+                         f"Emergency services have been contacted immediately. Stay safe.\\n"
+                         f"Reference: {entity_info.id[:8]}"
                 ))
 
             # 4. Emergency broadcast to multiple contacts
@@ -218,7 +264,51 @@ class TriggerOrchestratorService:
                     max_duration_minutes=3
                 ))
 
-            # 3. Follow-up scheduling
+
+                call_agent = EmergencyCallAgent()
+
+                # Make an emergency call
+                call_result = call_agent.make_emergency_call(
+                    phone_number=entity_info.phone,
+                    call_reason=department_output.request_plan.incident_summary,
+                    additional_context={
+                        "case_code": department_output.request_plan.case_code,
+                        "emergency_type": department_output.request_plan.incident_summary,
+                        "location": department_output.request_plan.location_details,
+                        "urgency_level": department_output.criticality,
+                        "additional_notes": department_output.request_plan.additional_context
+                    }
+                )
+
+                print(call_result)
+
+
+            # 3. User alert email with action plan (HIGH level)
+            if user_email:
+                immediate_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.immediate_actions])
+                follow_up_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.follow_up_actions])
+
+                actions.append(EmailAction(
+                    priority=ActionPriority.URGENT,
+                    title="Urgent Emergency Action Plan",
+                    description=f"Action plan details for {user_name or 'Citizen'}",
+                    estimated_duration="30 seconds",
+                    recipient_email=user_email,
+                    subject=f"🚨 URGENT RESPONSE - Action Plan for Your Emergency",
+                    body=f"Dear {user_name or 'Citizen'},\\n\\n"
+                         f"🚨 URGENT EMERGENCY RESPONSE INITIATED\\n\\n"
+                         f"Your emergency: {department_output.request_plan.incident_summary}\\n"
+                         f"Location: {department_output.request_plan.location_details}\\n\\n"
+                         f"IMMEDIATE ACTIONS BEING TAKEN:\\n{immediate_steps}\\n\\n"
+                         f"FOLLOW-UP ACTIONS PLANNED:\\n{follow_up_steps}\\n\\n"
+                         f"Estimated Resolution: {department_output.action_plan.estimated_resolution_time}\\n\\n"
+                         f"Emergency services are responding urgently to your situation.\\n"
+                         f"Reference: {entity_info.id[:8]}"
+                ))
+
+            # 4. Follow-up scheduling
             actions.append(FollowupScheduleAction(
                 priority=ActionPriority.NORMAL,
                 title="Automated Follow-up",
@@ -248,6 +338,30 @@ class TriggerOrchestratorService:
                     department_cc=entity_info.phone
                 ))
 
+            # 2. User alert email with action plan (MEDIUM level)
+            if user_email:
+                immediate_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.immediate_actions])
+                follow_up_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.follow_up_actions])
+
+                actions.append(EmailAction(
+                    priority=ActionPriority.NORMAL,
+                    title="Request Action Plan",
+                    description=f"Action plan details for {user_name or 'Citizen'}",
+                    estimated_duration="30 seconds",
+                    recipient_email=user_email,
+                    subject=f"Action Plan - {department_output.request_plan.incident_summary[:30]}...",
+                    body=f"Dear {user_name or 'Citizen'},\\n\\n"
+                         f"Thank you for your request. Here's our action plan:\\n\\n"
+                         f"Your request: {department_output.request_plan.incident_summary}\\n"
+                         f"Location: {department_output.request_plan.location_details}\\n\\n"
+                         f"IMMEDIATE ACTIONS BEING TAKEN:\\n{immediate_steps}\\n\\n"
+                         f"FOLLOW-UP ACTIONS PLANNED:\\n{follow_up_steps}\\n\\n"
+                         f"Estimated Resolution: {department_output.action_plan.estimated_resolution_time}\\n\\n"
+                         f"We will update you on progress. Reference: {entity_info.id[:8]}"
+                ))
+
             # Calendar booking removed - using email for non-urgent follow-up
             if user_email:
                 actions.append(EmailAction(
@@ -257,7 +371,8 @@ class TriggerOrchestratorService:
                     estimated_duration="30 seconds",
                     recipient_email=user_email,
                     subject=f"Your Request - {department_output.request_plan.incident_summary[:30]}...",
-                    body=f"Thank you for contacting us.\\n\\n"
+                    body=f"Dear {user_name or 'Citizen'},\\n\\n"
+                         f"Thank you for contacting us.\\n\\n"
                          f"Request: {department_output.request_plan.incident_summary}\\n"
                          f"Status: Processed and logged\\n"
                          f"Next Steps: {department_output.request_plan.required_response}\\n\\n"
@@ -267,17 +382,30 @@ class TriggerOrchestratorService:
         else:  # LOW criticality
             # LOW: Standard communication
 
-            # 1. Simple email notification
+            # 1. Simple email notification with action plan
             if user_email:
+                immediate_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.immediate_actions])
+                follow_up_steps = "\\n".join([f"{step.step_number}. {step.action} - {step.timeline}"
+                                            for step in department_output.action_plan.follow_up_actions])
+
                 actions.append(EmailAction(
                     priority=ActionPriority.NORMAL,
-                    title="Service Request Confirmation",
-                    description="Standard email confirmation",
+                    title="Service Request Action Plan",
+                    description="Standard confirmation with action plan",
                     estimated_duration="30 seconds",
                     recipient_email=user_email,
-                    subject="Service Request Received",
-                    body=f"Your request has been forwarded to {entity_info.name}. "
-                         f"They will contact you within 24-48 hours."
+                    subject="Service Request Received - Action Plan",
+                    body=f"Dear {user_name or 'Citizen'},\\n\\n"
+                         f"Thank you for your service request.\\n\\n"
+                         f"Your request: {department_output.request_plan.incident_summary}\\n"
+                         f"Location: {department_output.request_plan.location_details}\\n\\n"
+                         f"ACTIONS PLANNED:\\n{immediate_steps}\\n\\n"
+                         f"FOLLOW-UP ACTIONS:\\n{follow_up_steps}\\n\\n"
+                         f"Estimated Processing Time: {department_output.action_plan.estimated_resolution_time}\\n\\n"
+                         f"Your request has been forwarded to {entity_info.name}. "
+                         f"They will contact you within 24-48 hours.\\n\\n"
+                         f"Reference: {entity_info.id[:8]}"
                 ))
 
         return actions
@@ -293,7 +421,8 @@ class TriggerOrchestratorService:
                 router_decision=input_data.router_decision,
                 user_phone=input_data.user_phone,
                 user_email=input_data.user_email,
-                user_coordinates=input_data.user_coordinates
+                user_coordinates=input_data.user_coordinates,
+                user_name=input_data.user_name
             )
 
             # Calculate total estimated time
@@ -373,7 +502,8 @@ def trigger_emergency_actions(
     router_decision: RouterDecision,
     user_phone: str = None,
     user_email: str = None,
-    user_coordinates: Dict[str, float] = None
+    user_coordinates: Dict[str, float] = None,
+    user_name: str = None
 ) -> TriggerOrchestratorOutput:
     """Convenience function for triggering emergency actions"""
 
@@ -383,7 +513,8 @@ def trigger_emergency_actions(
         router_decision=router_decision,
         user_phone=user_phone,
         user_email=user_email,
-        user_coordinates=user_coordinates
+        user_coordinates=user_coordinates,
+        user_name=user_name
     )
 
     return TriggerOrchestratorService.orchestrate_triggers(input_data)

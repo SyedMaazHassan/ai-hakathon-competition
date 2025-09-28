@@ -1,7 +1,7 @@
 {% extends 'authentication/auth_base.html' %}
 {% load django_bootstrap5 %}
 {% load static %}
-{% block title %}Login | Hire With AI{% endblock %}
+{% block title %}Login | Frontline Assistant AI{% endblock %}
 
 {% block content %}
 <div class="auth-container">
@@ -14,7 +14,7 @@
                     <rect width="20" height="14" x="2" y="6" rx="2"></rect>
                 </svg>
             </div>
-            <h2 class="fw-bold mb-3">Hire With AI</h2>
+            <h2 class="fw-bold mb-3">Frontline Assistant AI</h2>
             <p class="text-center text-muted">AI-powered hiring solutions for modern recruiters</p>
         </div>
 
@@ -54,10 +54,6 @@
                 </div>
             </form>
 
-            <div class="text-center mt-4">
-                <a href="{% url 'password_reset' %}" class="auth-link">Forgot your password?</a>
-            </div>
-
             <div class="text-center mt-3">
                 <p class="mb-0">
                     Don't have an account?
@@ -66,7 +62,7 @@
             </div>
 
             <div class="text-center mt-4 pt-3 border-top">
-                <small class="text-muted">&copy; Hire With AI {% now "Y" %}. All rights reserved.</small>
+                <small class="text-muted">&copy; Frontline Assistant AI {% now "Y" %}. All rights reserved.</small>
             </div>
         </div>
     </div>

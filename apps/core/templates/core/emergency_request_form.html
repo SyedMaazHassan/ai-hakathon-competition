@@ -10,58 +10,7 @@
     <div class="w-full max-w-xl px-4 sm:px-0">
         <form method="POST" action="{% url 'submit_emergency_request' %}" id="emergency-form">
             {% csrf_token %}
-            <div class="flex justify-start">
-                <h2 class="text-xl font-semibold text-gray-800 mb-6">
-                    Select Emergency Type (Optional)
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div id="health-card"
-                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
-                     onclick="selectCard(this)"
-                     data-type="health"
-                     data-selected="false"
-                     style="height: 120px;">
-                    <i class="fas fa-heart text-3xl mb-1 text-gray-700"></i>
-                    <span class="font-semibold text-center text-sm text-gray-700">Health Emergency</span>
-                    <input type="radio" name="emergency_type" value="health" class="hidden">
-                </div>
-
-                <div id="police-card"
-                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
-                     onclick="selectCard(this)"
-                     data-type="police"
-                     data-selected="false"
-                     style="height: 120px;">
-                    <i class="fas fa-shield-alt text-3xl mb-1 text-gray-700"></i>
-                    <span class="font-semibold text-center text-sm text-gray-700">Police Emergency</span>
-                    <input type="radio" name="emergency_type" value="police" class="hidden">
-                </div>
-
-                <div id="fire-card"
-                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
-                     onclick="selectCard(this)"
-                     data-type="fire"
-                     data-selected="false"
-                     style="height: 120px;">
-                    <i class="fas fa-fire text-3xl mb-1 text-gray-700"></i>
-                    <span class="font-semibold text-center text-sm text-gray-700">Fire Emergency</span>
-                    <input type="radio" name="emergency_type" value="fire" class="hidden">
-                </div>
-
-                <div id="govt-card"
-                     class="emergency-card flex flex-col items-center justify-center p-4 border-2 transition duration-200 ease-in-out cursor-pointer rounded-xl shadow-md hover:shadow-lg"
-                     onclick="selectCard(this)"
-                     data-type="govt"
-                     data-selected="false"
-                     style="height: 120px;">
-                    <i class="fas fa-building text-3xl mb-1 text-gray-700"></i>
-                    <span class="font-semibold text-center text-sm text-gray-700">Government Services</span>
-                    <input type="radio" name="emergency_type" value="govt" class="hidden">
-                </div>
-            </div>
-
+           
             <div class="mt-8">
                 <h3 class="text-sm font-medium text-gray-600 mb-2">Your Location *</h3>
                 <div class="flex justify-between items-center p-3 border border-gray-300 rounded-lg bg-white cursor-pointer hover:border-brand-primary transition-colors"

@@ -230,7 +230,8 @@ def test_critical_scenarios():
                 router_decision=router_decision,
                 user_phone=scenario.get('user_phone'),
                 user_email=scenario.get('user_email'),
-                user_coordinates=scenario.get('coordinates')
+                user_coordinates=scenario.get('coordinates'),
+                user_name=scenario.get('user_name')
             )
 
             if result.success:
