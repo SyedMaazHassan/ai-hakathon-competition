@@ -237,7 +237,7 @@ class SimplifiedEmergencyPipeline:
         if True:  # Demo mode
             from apps.depts.services.trigger_orchestrator_service import SMSAction
             sms_action = SMSAction(
-                priority="immediate",
+                priority=dept_result.criticality,
                 title="Department Emergency SMS",
                 description="Emergency notification to department",
                 estimated_duration="30 seconds",
@@ -253,7 +253,7 @@ class SimplifiedEmergencyPipeline:
         if True:  # Demo mode
             from apps.depts.services.trigger_orchestrator_service import EmailAction
             email_action = EmailAction(
-                priority="urgent",
+                priority=dept_result.criticality,
                 title="Department Emergency Email",
                 description="Emergency request plan to department",
                 estimated_duration="30 seconds",
