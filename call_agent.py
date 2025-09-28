@@ -1,7 +1,11 @@
 import os
 import requests
 from vapi import Vapi
+from dotenv import load_dotenv
+import os
 
+# Load variables from .env file
+load_dotenv()
 
 class EmergencyCallAgent:
     def __init__(self, api_key: str = None, phone_number_id: str = None):
@@ -276,7 +280,7 @@ if __name__ == "__main__":
 
     # Make an emergency call
     result = agent.make_emergency_call(
-        phone_number="+14155552671",
+        phone_number="+923472533106",
         call_reason="medical",
         additional_context={
             "case_code": "C-A812CD34",
