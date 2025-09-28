@@ -8,8 +8,11 @@ ENV PYTHONUNBUFFERED=1
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies (netcat for nc, bash for scripts)
+# Install system dependencies for PyAudio + general tools
 RUN apt-get update && apt-get install -y \
+    gcc \
+    portaudio19-dev \
+    python3-dev \
     netcat-openbsd \
     bash \
     && apt-get clean \
@@ -26,14 +29,11 @@ COPY entrypoint.sh /app/entrypoint.sh
 # Make entrypoint executable
 RUN chmod +x /app/entrypoint.sh
 
-# Set entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Django static root
 ENV STATIC_ROOT /static
 
-# Expose the default Django port
 EXPOSE 8000
 
-# Default command to run Django via Gunicorn
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
