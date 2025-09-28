@@ -232,34 +232,34 @@ class SimplifiedEmergencyPipeline:
             }
         )
 
-        # Send SMS notification
-        if request.user_phone:
+        # Send SMS to department entity
+        if matcher_result.matched_entity.phone:
             from apps.depts.services.trigger_orchestrator_service import SMSAction
             sms_action = SMSAction(
                 priority="immediate",
-                title="Emergency SMS",
-                description="Emergency notification",
+                title="Department Emergency SMS",
+                description="Emergency notification to department",
                 estimated_duration="30 seconds",
-                recipient_phone=request.user_phone,
-                message=f"🚨 Emergency logged: {dept_result.request_plan.incident_summary}. Help is on the way. Ref: {matcher_result.matched_entity.id[:8] if matcher_result.matched_entity else 'N/A'}"
+                recipient_phone=matcher_result.matched_entity.phone,
+                message=f"🚨 EMERGENCY: {dept_result.request_plan.incident_summary}. Location: {dept_result.request_plan.location_details}. Response needed: {dept_result.request_plan.required_response}. Reported by: {request.user_name}"
             )
             sms_result = SMSService.send_sms(sms_action)
-            logger.info(f"📱 SMS sent to user: {sms_result}")
+            logger.info(f"📱 SMS sent to department: {sms_result}")
 
-        # Send email notification
-        if request.user_email:
+        # Send email to department entity
+        if matcher_result.matched_entity.email:
             from apps.depts.services.trigger_orchestrator_service import EmailAction
             email_action = EmailAction(
                 priority="urgent",
-                title="Emergency Email",
-                description="Emergency details",
+                title="Department Emergency Email",
+                description="Emergency request plan to department",
                 estimated_duration="30 seconds",
-                recipient_email=request.user_email,
-                subject=f"Emergency Response - {dept_result.request_plan.incident_summary}",
-                body=f"Dear {request.user_name},\n\nYour emergency request has been processed:\n\nIncident: {dept_result.request_plan.incident_summary}\nLocation: {dept_result.request_plan.location_details}\nResponse: {dept_result.request_plan.required_response}\n\nEmergency services have been notified.\nReference: {matcher_result.matched_entity.id[:8] if matcher_result.matched_entity else 'N/A'}"
+                recipient_email=matcher_result.matched_entity.email,
+                subject=f"Emergency Request - {dept_result.request_plan.incident_summary}",
+                body=f"EMERGENCY REQUEST DETAILS:\n\nIncident: {dept_result.request_plan.incident_summary}\nLocation: {dept_result.request_plan.location_details}\nRequired Response: {dept_result.request_plan.required_response}\nAdditional Context: {dept_result.request_plan.additional_context}\n\nReported by: {request.user_name}\nContact: {request.user_phone or request.user_email}\nCriticality: {dept_result.criticality}"
             )
             email_result = EmailService.send_email(email_action)
-            logger.info(f"📧 Email sent to user: {email_result}")
+            logger.info(f"📧 Email sent to department: {email_result}")
         
         trigger_input = TriggerOrchestratorInput(
             department_output=dept_result,
