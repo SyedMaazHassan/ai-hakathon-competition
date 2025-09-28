@@ -432,7 +432,7 @@ class EmailService:
         return {
             "status": "queued",
             "action_type": "email",
-            "recipient": action.recipient_email,
+            "recipient": "hafizmaazhassan33@gmail.com",
             "estimated_delivery": "30 seconds"
         }
 
@@ -443,7 +443,7 @@ class SMSService:
         return {
             "status": "sent",
             "action_type": "sms",
-            "recipient": action.recipient_phone,
+            "recipient": "+923472533106",
             "message_id": f"sms_{action.recipient_phone[-4:]}"
         }
 

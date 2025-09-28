@@ -1,0 +1,214 @@
+{% extends "core/new_base.html" %}
+{% block title %}Admin Dashboard - Departments{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-gray-900 text-[30px] leading-9 font-bold tracking-[-0.75px] dark:text-white">Department Admin Dashboard</h1>
+      <p class="text-gray-500 mt-2 dark:text-gray-400">Manage departments and entities across the emergency response system.</p>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
+      <div class="flex items-center justify-between pb-2">
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Departments</div>
+        <i class="fa-solid fa-building text-gray-500 text-xs dark:text-gray-400"></i>
+      </div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ total_departments }}</div>
+      <p class="text-xs text-green-600">Active departments</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
+      <div class="flex items-center justify-between pb-2">
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Entities</div>
+        <i class="fa-solid fa-hospital text-gray-500 text-xs dark:text-gray-400"></i>
+      </div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ total_entities }}</div>
+      <p class="text-xs text-blue-600">Physical locations</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
+      <div class="flex items-center justify-between pb-2">
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">24/7 Services</div>
+        <i class="fa-solid fa-clock text-gray-500 text-xs dark:text-gray-400"></i>
+      </div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ active_departments }}</div>
+      <p class="text-xs text-orange-600">Always available</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl p-4 dark:bg-dark-card dark:border-dark-border">
+      <div class="flex items-center justify-between pb-2">
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Response Time</div>
+        <i class="fa-solid fa-stopwatch text-gray-500 text-xs dark:text-gray-400"></i>
+      </div>
+      <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ avg_response_time }}m</div>
+      <p class="text-xs text-purple-600">Minutes average</p>
+    </div>
+  </div>
+
+  <!-- Departments Section -->
+  <div class="bg-white border border-gray-200 rounded-xl p-6 dark:bg-dark-card dark:border-dark-border">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Departments</h2>
+      <div class="flex space-x-3">
+        <button class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <i class="bi bi-funnel"></i>
+          <span>Filter</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for department in departments %}
+      <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow dark:bg-gray-800 dark:border-gray-700">
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center space-x-3">
+            {% if department.logo %}
+              <img src="{{ department.logo }}" alt="{{ department.name }}" class="w-12 h-12 rounded-lg object-cover">
+            {% else %}
+              <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                {% if department.category == 'HEALTH' %}🏥
+                {% elif department.category == 'POLICE' %}🚓
+                {% elif department.category == 'FIRE' %}🚒
+                {% elif department.category == 'GOVERNMENT' %}🏛️
+                {% else %}🏢{% endif %}
+              </div>
+            {% endif %}
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ department.name }}</h3>
+              <span class="px-2 py-1 text-xs font-medium rounded-full
+                {% if department.category == 'HEALTH' %}bg-green-100 text-green-800
+                {% elif department.category == 'POLICE' %}bg-blue-100 text-blue-800
+                {% elif department.category == 'FIRE' %}bg-red-100 text-red-800
+                {% elif department.category == 'GOVERNMENT' %}bg-purple-100 text-purple-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ department.get_category_display }}
+              </span>
+            </div>
+          </div>
+          {% if department.is_24x7 %}
+            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">24/7</span>
+          {% endif %}
+        </div>
+
+        {% if department.description %}
+        <p class="text-sm text-gray-600 mb-3 dark:text-gray-300">{{ department.description|truncatewords:15 }}</p>
+        {% endif %}
+
+        <div class="space-y-2 text-sm">
+          {% if department.main_phone %}
+          <div class="flex items-center text-gray-600 dark:text-gray-300">
+            <i class="fa-solid fa-phone w-4 mr-2"></i>
+            <span>{{ department.main_phone }}</span>
+          </div>
+          {% endif %}
+
+          {% if department.main_email %}
+          <div class="flex items-center text-gray-600 dark:text-gray-300">
+            <i class="fa-solid fa-envelope w-4 mr-2"></i>
+            <span>{{ department.main_email }}</span>
+          </div>
+          {% endif %}
+
+          {% if department.response_time_minutes %}
+          <div class="flex items-center text-gray-600 dark:text-gray-300">
+            <i class="fa-solid fa-clock w-4 mr-2"></i>
+            <span>{{ department.response_time_minutes }} min response</span>
+          </div>
+          {% endif %}
+
+          <div class="flex items-center text-gray-600 dark:text-gray-300">
+            <i class="fa-solid fa-building w-4 mr-2"></i>
+            <span>{{ department.entities.count }} location{{ department.entities.count|pluralize }}</span>
+          </div>
+        </div>
+
+        {% if department.emergency_number %}
+        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+          <div class="flex items-center text-red-700 dark:text-red-300">
+            <i class="fa-solid fa-phone-volume w-4 mr-2"></i>
+            <span class="font-medium">Emergency: {{ department.emergency_number }}</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="col-span-full text-center py-8">
+        <i class="fa-solid fa-building text-4xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500 dark:text-gray-400">No departments found.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Entities by Category Section -->
+  <div class="bg-white border border-gray-200 rounded-xl p-6 dark:bg-dark-card dark:border-dark-border">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6 dark:text-white">Department Entities by Category</h2>
+
+    {% for category, category_entities in entities_by_category.items %}
+    <div class="mb-8">
+      <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center dark:text-white">
+        {% if category == 'HEALTH' %}🏥
+        {% elif category == 'POLICE' %}🚓
+        {% elif category == 'FIRE' %}🚒
+        {% elif category == 'GOVERNMENT' %}🏛️
+        {% else %}🏢{% endif %}
+        <span class="ml-2">{{ category|capfirst }} Entities ({{ category_entities|length }})</span>
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for entity in category_entities %}
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow dark:bg-gray-800 dark:border-gray-700">
+          <div class="flex items-start justify-between mb-2">
+            <h4 class="font-medium text-gray-900 dark:text-white">{{ entity.name }}</h4>
+            <span class="px-2 py-1 text-xs font-medium rounded-full
+              {% if entity.type == 'HOSPITAL' %}bg-green-100 text-green-800
+              {% elif entity.type == 'CLINIC' %}bg-blue-100 text-blue-800
+              {% elif entity.type == 'STATION' %}bg-red-100 text-red-800
+              {% elif entity.type == 'OFFICE' %}bg-purple-100 text-purple-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ entity.get_type_display }}
+            </span>
+          </div>
+
+          <div class="text-sm space-y-1">
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-building w-3 mr-2"></i>
+              <span>{{ entity.department.name }}</span>
+            </div>
+
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-map-marker-alt w-3 mr-2"></i>
+              <span>{{ entity.city.name }}</span>
+            </div>
+
+            {% if entity.phone %}
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-phone w-3 mr-2"></i>
+              <span>{{ entity.phone }}</span>
+            </div>
+            {% endif %}
+
+            {% if entity.capacity %}
+            <div class="flex items-center text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-users w-3 mr-2"></i>
+              <span>Capacity: {{ entity.capacity }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-8">
+      <i class="fa-solid fa-hospital text-4xl text-gray-300 mb-4"></i>
+      <p class="text-gray-500 dark:text-gray-400">No entities found.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
