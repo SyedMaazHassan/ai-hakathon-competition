@@ -41,6 +41,7 @@ class EmergencyRequest(BaseModel):
     user_id: Optional[int] = Field(None, description="User ID if authenticated")
     user_name: Optional[str] = Field("Anonymous", description="User's name")
 
+
 class PipelineResult(BaseModel):
     """Simplified result model"""
     success: bool
@@ -105,11 +106,9 @@ class SimplifiedEmergencyPipeline:
             router_result = self._process_router_step(request)
             matcher_result = self._process_matcher_step(request, router_result)
             dept_result = self._process_department_step(request, router_result)
-            trigger_result = self._process_trigger_step(request, router_result, matcher_result, dept_result)
+            next_steps_result = self._process_next_steps_step(request, dept_result, matcher_result, citizen_request.case_code)
+            trigger_result = self._process_trigger_step(request, router_result, matcher_result, dept_result, next_steps_result)
             execution_result = self._process_actions_step(trigger_result)
-            
-            # 3. Generate citizen response
-            next_steps_result = self._process_next_steps(request, dept_result, matcher_result, execution_result, citizen_request.case_code)
             
             # 4. Update database with results
             self.db_service.update_request_with_results(
@@ -207,42 +206,9 @@ class SimplifiedEmergencyPipeline:
         logger.info(f"✅ Criticality: {dept_result.criticality}")
         return dept_result
 
-    def _process_trigger_step(self, request: EmergencyRequest, router_result, matcher_result, dept_result):
-        """Process trigger orchestrator step"""
-        logger.info("⚡ Step 4: Mapping to intelligent actions...")
-        
-        trigger_input = TriggerOrchestratorInput(
-            department_output=dept_result,
-            entity_info=matcher_result.matched_entity,
-            router_decision=router_result,
-            user_phone=request.user_phone,
-            user_email=request.user_email,
-            user_coordinates=request.user_coordinates
-        )
-        
-        trigger_result = self.trigger_service.orchestrate_triggers(trigger_input)
-        
-        if not trigger_result.success:
-            raise Exception(f"Trigger orchestrator failed: {trigger_result.error_message}")
-            
-        logger.info(f"✅ Actions: {len(trigger_result.triggered_actions)}")
-        return trigger_result
-
-    def _process_actions_step(self, trigger_result):
-        """Process action execution step"""
-        logger.info("🚀 Step 5: Executing emergency actions...")
-        
-        execution_result = self.action_executor.execute_multiple_actions(
-            trigger_result.triggered_actions,
-            parallel=True
-        )
-        
-        logger.info(f"✅ Executed: {execution_result['successful_actions']}/{execution_result['total_actions']}")
-        return execution_result
-
-    def _process_next_steps(self, request: EmergencyRequest, dept_result, matcher_result, execution_result, case_code):
-        """Process next steps generation"""
-        logger.info("📋 Step 6: Generating citizen response...")
+    def _process_next_steps_step(self, request: EmergencyRequest, dept_result, matcher_result, case_code):
+        """Process next steps generation (moved before trigger orchestrator)"""
+        logger.info("📋 Step 4: Generating citizen response...")
         
         try:
             # Create properly formatted input with all required fields
@@ -257,7 +223,9 @@ class SimplifiedEmergencyPipeline:
                 location_details=dept_result.request_plan.location_details
             )
             
-            return self.next_steps_service.generate_next_steps(next_steps_input)
+            next_steps_result = self.next_steps_service.generate_next_steps(next_steps_input)
+            logger.info(f"✅ Next steps generated")
+            return next_steps_result
             
         except Exception as e:
             logger.error(f"Next Steps Agent failed: {str(e)}")
@@ -266,12 +234,45 @@ class SimplifiedEmergencyPipeline:
             return NextStepsOutput(
                 citizen_message="Your emergency request has been processed. You will be contacted soon.",
                 actionable_steps=["Keep your phone available", "Check messages regularly", "Stay at a safe location"],
-                reference_number=case_code,
-                urgency_indicator="Help is being dispatched to your location",
-                help_arriving_info="Emergency services have been notified and are responding",
-                success=False,
-                error_message=str(e)
+                urgency_indicator="HIGH",
+                help_arriving_info="Emergency services have been notified and will contact you shortly.",
+                reference_number=case_code
             )
+
+    def _process_trigger_step(self, request: EmergencyRequest, router_result, matcher_result, dept_result, next_steps_result):
+        """Process trigger orchestrator step"""
+        logger.info("⚡ Step 5: Mapping to intelligent actions...")
+        
+        trigger_input = TriggerOrchestratorInput(
+            department_output=dept_result,
+            entity_info=matcher_result.matched_entity,
+            router_decision=router_result,
+            user_phone=request.user_phone,
+            user_email=request.user_email,
+            user_coordinates=request.user_coordinates,
+            next_steps_output=next_steps_result  # Pass NextStepsAgent output
+        )
+        
+        trigger_result = self.trigger_service.orchestrate_triggers(trigger_input)
+        
+        if not trigger_result.success:
+            raise Exception(f"Trigger orchestrator failed: {trigger_result.error_message}")
+            
+        logger.info(f"✅ Actions: {len(trigger_result.triggered_actions)}")
+        return trigger_result
+
+    def _process_actions_step(self, trigger_result):
+        """Process action execution step"""
+        logger.info("🚀 Step 6: Executing emergency actions...")
+        
+        execution_result = self.action_executor.execute_multiple_actions(
+            trigger_result.triggered_actions,
+            parallel=True
+        )
+        
+        logger.info(f"✅ Executed: {execution_result['successful_actions']}/{execution_result['total_actions']}")
+        return execution_result
+
 
 # Convenience function
 def process_citizen_emergency(

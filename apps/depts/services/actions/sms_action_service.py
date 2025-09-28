@@ -67,6 +67,14 @@ class SMSActionService:
             else:
                 formatted_message = f"📢 {sms_action.message}"
 
+            # Add Google Maps location link if coordinates are available
+            if hasattr(sms_action, 'user_coordinates') and sms_action.user_coordinates:
+                lat = sms_action.user_coordinates.get('lat') or sms_action.user_coordinates.get('latitude')
+                lng = sms_action.user_coordinates.get('lng') or sms_action.user_coordinates.get('longitude')
+                if lat and lng:
+                    maps_link = f"https://maps.google.com/maps?q={lat},{lng}"
+                    formatted_message += f"\n📍 Location: {maps_link}"
+
             # Add sender name if provided
             if hasattr(sms_action, 'sender_name') and sms_action.sender_name:
                 formatted_message += f"\n- {sms_action.sender_name}"

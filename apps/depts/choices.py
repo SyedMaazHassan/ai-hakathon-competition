@@ -123,3 +123,9 @@ class AgentType(models.TextChoices):
     TRIAGE_AGENT = "triage", "Triage Agent"
     ESCALATION_AGENT = "escalation", "Escalation Agent"
     COMMUNICATION_AGENT = "communication", "Communication Agent"
+
+class ActionPriority(models.TextChoices):
+    IMMEDIATE = "immediate", "Immediate Action Required"
+    URGENT = "urgent", "Urgent Action"
+    NORMAL = "normal", "Normal Priority"
+    LOW = "low", "Low Priority"

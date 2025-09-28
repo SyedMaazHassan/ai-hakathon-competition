@@ -197,7 +197,8 @@ class ActionExecutor:
                             estimated_duration="30 seconds",
                             recipient_phone=contact,
                             message=message,
-                            sender_name="Emergency Services"
+                            sender_name="Emergency Services",
+                            user_coordinates=getattr(broadcast_action, 'user_coordinates', None)
                         )
                         sms_result = self.sms_service.execute_sms_action(sms_action)
                         results.append({"channel": "sms", "contact": contact, **sms_result})
@@ -213,7 +214,8 @@ class ActionExecutor:
                             estimated_duration="1 minute",
                             recipient_email=contact,
                             subject="Emergency Broadcast Alert",
-                            body=message
+                            body=message,
+                            user_coordinates=getattr(broadcast_action, 'user_coordinates', None)
                         )
                         email_result = self.email_service.execute_email_action(email_action)
                         results.append({"channel": "email", "contact": contact, **email_result})

@@ -89,6 +89,7 @@ class DepartmentEntity(BaseModel):
     
     # Contact & Services
     phone = models.CharField(max_length=40, blank=True)
+    email = models.EmailField(blank=True, help_text="Primary contact email for this entity")
     services = models.JSONField(default=dict, blank=True)  # Available services, hours, etc.
     
     # Capacity & Details

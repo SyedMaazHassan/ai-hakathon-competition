@@ -19,10 +19,10 @@ def test_simplified_pipeline():
     
     # Test data
     test_request = {
-        "request_text": "There's a fire in my building and people are trapped!",
-        "user_phone": "+923001234567",
-        "user_email": "test@example.com",
-        "user_city": "Lahore",
+        "request_text": "Fire brigade is needed, this is fire in nearbuy my house",
+        "user_phone": "+923012697601",
+        "user_email": "hafizmaazhassan33@gmail.com",
+        "user_city": "Karachi",
         "user_coordinates": {"lat": 31.5497, "lng": 74.3436},
         "user_name": "Test User"
     }

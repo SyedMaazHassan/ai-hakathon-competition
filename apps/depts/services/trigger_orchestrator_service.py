@@ -17,7 +17,8 @@ from enum import Enum
 from apps.depts.agents.department_orchestrator_agent.pydantic_models import DepartmentOrchestratorServiceOutput
 from apps.depts.services.matcher_service import EntityInfo
 from apps.depts.agents.router_agent.pydantic_models import RouterDecision
-from apps.depts.choices import ActionType, UrgencyLevel, CallStatus, AppointmentStatus
+from apps.depts.choices import ActionType, UrgencyLevel, CallStatus, AppointmentStatus, ActionPriority
+from django.utils import timezone
 
 # =============================================================================
 # TRIGGER-SPECIFIC ACTION TYPES (synced with database)
@@ -53,6 +54,7 @@ class EmailAction(BaseAction):
     subject: str
     body: str
     department_cc: Optional[str] = None
+    user_coordinates: Optional[Dict[str, float]] = None
     action_type: TriggerActionType = TriggerActionType.EMAIL
 
 class SMSAction(BaseAction):
@@ -60,6 +62,7 @@ class SMSAction(BaseAction):
     recipient_phone: str
     message: str
     sender_name: str = "Emergency Services"
+    user_coordinates: Optional[Dict[str, float]] = None
     action_type: TriggerActionType = TriggerActionType.SMS
 
 class VoiceCallAction(BaseAction):
@@ -76,6 +79,7 @@ class EmergencyBroadcastAction(BaseAction):
     broadcast_message: str
     channels: List[str]  # ["sms", "email", "push_notification"]
     target_contacts: List[str]
+    user_coordinates: Optional[Dict[str, float]] = None
     action_type: TriggerActionType = TriggerActionType.EMERGENCY_BROADCAST
 
 class FollowupScheduleAction(BaseAction):
@@ -99,6 +103,7 @@ class TriggerOrchestratorInput(BaseModel):
     user_phone: Optional[str] = None
     user_email: Optional[str] = None
     user_coordinates: Optional[Dict[str, float]] = None
+    next_steps_output: Optional[Any] = None  # NextStepsAgent output for citizen emails
 
 class TriggerOrchestratorOutput(BaseModel):
     """Output with orchestrated actions"""
@@ -126,7 +131,8 @@ class TriggerOrchestratorService:
         router_decision: RouterDecision,
         user_phone: str = None,
         user_email: str = None,
-        user_coordinates: Dict[str, float] = None
+        user_coordinates: Dict[str, float] = None,
+        next_steps_output = None
     ) -> List[TriggerAction]:
         """Map criticality to intelligent action combinations"""
 
@@ -158,24 +164,75 @@ class TriggerOrchestratorService:
                     estimated_duration="30 seconds",
                     recipient_phone=user_phone,
                     message=f"🚨 EMERGENCY LOGGED: {entity_info.name} contacted immediately. "
-                           f"Stay safe. Help arriving soon. Ref: {entity_info.id[:8]}"
+                           f"Stay safe. Help arriving soon. Ref: {entity_info.id[:8]}",
+                    user_coordinates=user_coordinates
                 ))
 
-            # 3. Email alert to department for documentation
-            if user_email:
+            # 3. Email alert to department entity (ALWAYS send to department)
+            if entity_info.email:
                 actions.append(EmailAction(
                     priority=ActionPriority.URGENT,
                     title="Emergency Documentation Email",
                     description=f"Detailed incident report to {entity_info.name}",
                     estimated_duration="30 seconds",
-                    recipient_email=f"emergency@{entity_info.city.lower()}.gov",
+                    recipient_email=entity_info.email,
                     subject=f"CRITICAL EMERGENCY - {department_output.request_plan.incident_summary}",
-                    body=f"CRITICAL EMERGENCY REPORT\\n\\n"
-                         f"Incident: {department_output.request_plan.incident_summary}\\n"
-                         f"Location: {department_output.request_plan.location_details}\\n"
-                         f"Contact: {user_phone or user_email}\\n"
-                         f"Additional Context: {department_output.request_plan.additional_context}\\n"
-                         f"Response Required: {department_output.request_plan.required_response}"
+                    body=f"🚨 CRITICAL EMERGENCY REPORT\\n\\n"
+                         f"📋 INCIDENT DETAILS:\\n"
+                         f"• Summary: {department_output.request_plan.incident_summary}\\n"
+                         f"• Location: {department_output.request_plan.location_details}\\n"
+                         f"• Additional Context: {department_output.request_plan.additional_context}\\n\\n"
+                         f"👤 CITIZEN CONTACT INFORMATION:\\n"
+                         f"• Phone: {user_phone or 'Not provided'}\\n"
+                         f"• Email: {user_email or 'Not provided'}\\n\\n"
+                         f"⚡ REQUIRED RESPONSE:\\n"
+                         f"{department_output.request_plan.required_response}\\n\\n"
+                         f"🎯 IMMEDIATE ACTIONS REQUIRED:\\n"
+                         f"{TriggerOrchestratorService._format_department_actions(department_output.action_plan.immediate_actions)}\\n\\n"
+                         f"📅 FOLLOW-UP ACTIONS:\\n"
+                         f"{TriggerOrchestratorService._format_department_actions(department_output.action_plan.follow_up_actions)}\\n\\n"
+                         f"🎯 PRIORITY: CRITICAL\\n"
+                         f"⏰ ESTIMATED RESOLUTION: {department_output.action_plan.estimated_resolution_time}\\n"
+                         f"🔗 CASE REFERENCE: {entity_info.id[:8]}",
+                    user_coordinates=user_coordinates
+                ))
+            
+            # 4. Email confirmation to user (if user provided email)
+            if user_email:
+                # Use NextStepsAgent output if available, otherwise fallback
+                if next_steps_output and hasattr(next_steps_output, 'actionable_steps'):
+                    citizen_body = f"🚨 EMERGENCY CONFIRMATION\\n\\n"
+                    citizen_body += f"{next_steps_output.citizen_message}\\n\\n"
+                    citizen_body += f"📋 ACTIONABLE STEPS:\\n"
+                    for i, step in enumerate(next_steps_output.actionable_steps, 1):
+                        citizen_body += f"{i}. {step}\\n"
+                    citizen_body += f"\\n📞 Emergency Services: {entity_info.phone}\\n"
+                    citizen_body += f"📍 Your Location: {department_output.request_plan.location_details}\\n"
+                    citizen_body += f"🔗 Reference Number: {next_steps_output.reference_number}\\n\\n"
+                    citizen_body += f"Help is on the way. Stay safe!"
+                else:
+                    # Fallback content
+                    citizen_body = f"🚨 EMERGENCY CONFIRMATION\\n\\n"
+                    citizen_body += f"Your emergency request has been received and {entity_info.name} has been notified immediately.\\n\\n"
+                    citizen_body += f"📋 IMMEDIATE ACTION STEPS:\\n"
+                    citizen_body += f"1. Stay at a safe location\\n"
+                    citizen_body += f"2. Keep your phone available for emergency contact\\n"
+                    citizen_body += f"3. Do not return to the incident area unless safe\\n"
+                    citizen_body += f"4. Await contact from {entity_info.name}\\n\\n"
+                    citizen_body += f"📞 Emergency Services: {entity_info.phone}\\n"
+                    citizen_body += f"📍 Your Location: {department_output.request_plan.location_details}\\n"
+                    citizen_body += f"🔗 Reference Number: {entity_info.id[:8]}\\n\\n"
+                    citizen_body += f"Help is on the way. Stay safe!"
+
+                actions.append(EmailAction(
+                    priority=ActionPriority.URGENT,
+                    title="Emergency Confirmation Email",
+                    description=f"Confirmation email to citizen",
+                    estimated_duration="30 seconds",
+                    recipient_email=user_email,
+                    subject=f"EMERGENCY LOGGED - {entity_info.name} notified",
+                    body=citizen_body,
+                    user_coordinates=user_coordinates
                 ))
 
             # 4. Emergency broadcast to multiple contacts
@@ -186,7 +243,8 @@ class TriggerOrchestratorService:
                 estimated_duration="2 minutes",
                 broadcast_message=f"CRITICAL: {department_output.request_plan.incident_summary}",
                 channels=["sms", "email"],
-                target_contacts=[entity_info.phone, user_phone] if user_phone else [entity_info.phone]
+                target_contacts=[entity_info.phone, user_phone] if user_phone else [entity_info.phone],
+                user_coordinates=user_coordinates
             ))
 
         elif criticality.lower() == "high":
@@ -201,7 +259,8 @@ class TriggerOrchestratorService:
                 recipient_phone=entity_info.phone,
                 message=f"🚨 URGENT: {department_output.request_plan.incident_summary}. "
                        f"Location: {department_output.request_plan.location_details}. "
-                       f"Contact: {user_phone or 'Not provided'}"
+                       f"Contact: {user_phone or 'Not provided'}",
+                user_coordinates=user_coordinates
             ))
 
             # 2. Voice call to department for urgent response
@@ -293,7 +352,8 @@ class TriggerOrchestratorService:
                 router_decision=input_data.router_decision,
                 user_phone=input_data.user_phone,
                 user_email=input_data.user_email,
-                user_coordinates=input_data.user_coordinates
+                user_coordinates=input_data.user_coordinates,
+                next_steps_output=input_data.next_steps_output
             )
 
             # Calculate total estimated time
@@ -321,6 +381,26 @@ class TriggerOrchestratorService:
                 success=False,
                 error_message=str(e)
             )
+
+    @staticmethod
+    def _format_department_actions(actions: List[Any]) -> str:
+        """Format department action steps for email content"""
+        if not actions:
+            return "No specific actions defined"
+        
+        formatted_actions = []
+        for action in actions:
+            if hasattr(action, 'step_number') and hasattr(action, 'action'):
+                formatted_actions.append(f"• Step {action.step_number}: {action.action}")
+                if hasattr(action, 'timeline') and action.timeline:
+                    formatted_actions.append(f"  Timeline: {action.timeline}")
+                if hasattr(action, 'responsible_party') and action.responsible_party:
+                    formatted_actions.append(f"  Responsible: {action.responsible_party}")
+            else:
+                # Fallback for simple string actions
+                formatted_actions.append(f"• {str(action)}")
+        
+        return "\\n".join(formatted_actions)
 
 # =============================================================================
 # ACTION SERVICE TEMPLATES (Simple implementations)
@@ -362,6 +442,7 @@ class VAPICallService:
 # GoogleCalendarService removed - using email for scheduling and follow-up
 
 # NearbySearchService removed - focusing on core emergency actions
+
 
 # =============================================================================
 # CONVENIENCE FUNCTION

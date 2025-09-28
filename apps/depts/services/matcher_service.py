@@ -32,6 +32,7 @@ class EntityInfo(BaseModel):
     id: str
     name: str
     phone: Optional[str] = None  # Allow None for edge cases
+    email: Optional[str] = None  # Entity's contact email
     city: str
     address: Optional[str] = None
     distance_km: Optional[float] = None
@@ -192,6 +193,7 @@ class MatcherService:
                         id=best_entity.id,
                         name=best_entity.name,
                         phone=best_entity.phone or department.main_phone or "+92-300-0000000",
+                        email=best_entity.email or department.main_email or "",
                         city=best_entity.city.name,
                         address=getattr(best_entity.location, 'formatted_address', '') if best_entity.location else '',
                         match_reason=f"Exact city match: {target_city.name}"
@@ -207,6 +209,7 @@ class MatcherService:
                             id=entity.id,
                             name=entity.name,
                             phone=entity.phone or department.main_phone or "+92-300-0000000",
+                            email=entity.email or department.main_email or "",
                             city=entity.city.name,
                             address=getattr(entity.location, 'formatted_address', '') if entity.location else '',
                             match_reason=f"Alternative in {entity.city.name}"
@@ -220,6 +223,7 @@ class MatcherService:
                                 id=entity.id,
                                 name=entity.name,
                                 phone=entity.phone or department.main_phone or "+92-300-0000000",
+                                email=entity.email or department.main_email or "",
                                 city=entity.city.name,
                                 address=getattr(entity.location, 'formatted_address', '') if entity.location else '',
                                 match_reason=f"Fallback in {entity.city.name}"
@@ -256,6 +260,7 @@ class MatcherService:
                         id=best_entity.id,
                         name=best_entity.name,
                         phone=best_entity.phone or department.main_phone or "+92-300-0000000",
+                        email=best_entity.email or department.main_email or "",
                         city=best_entity.city.name,
                         address=getattr(best_entity.location, 'formatted_address', '') if best_entity.location else '',
                         distance_km=round(best_distance, 2),
@@ -269,6 +274,7 @@ class MatcherService:
                             id=entity.id,
                             name=entity.name,
                             phone=entity.phone or department.main_phone or "+92-300-0000000",
+                            email=entity.email or department.main_email or "",
                             city=entity.city.name,
                             address=getattr(entity.location, 'formatted_address', '') if entity.location else '',
                             distance_km=round(distance, 2),
@@ -288,6 +294,7 @@ class MatcherService:
                 id=first_entity.id,
                 name=first_entity.name,
                 phone=first_entity.phone or department.main_phone or "+92-300-0000000",
+                email=first_entity.email or department.main_email or "",
                 city=first_entity.city.name,
                 address=getattr(first_entity.location, 'formatted_address', '') if first_entity.location else '',
                 match_reason="Default fallback - first available entity"
@@ -300,6 +307,7 @@ class MatcherService:
                     id=entity.id,
                     name=entity.name,
                     phone=entity.phone or department.main_phone or "+92-300-0000000",
+                    email=entity.email or department.main_email or "",
                     city=entity.city.name,
                     address=getattr(entity.location, 'formatted_address', '') if entity.location else '',
                     match_reason="Alternative option"

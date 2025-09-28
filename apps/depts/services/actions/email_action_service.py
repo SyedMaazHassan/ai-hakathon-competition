@@ -74,6 +74,8 @@ class EmailActionService:
                         </pre>
                     </div>
 
+                    {self._get_location_section(email_action)}
+
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
                         <p style="margin: 0; color: #6c757d; font-size: 12px;">
                             Priority: {email_action.priority.value} |
@@ -86,12 +88,15 @@ class EmailActionService:
             """
 
             # Plain text version
+            location_text = self._get_location_text(email_action)
             plain_message = f"""
 🚨 EMERGENCY ALERT: {email_action.title}
 
 Subject: {email_action.subject}
 
 {email_action.body}
+
+{location_text}
 
 Priority: {email_action.priority.value}
 Estimated Duration: {email_action.estimated_duration}
@@ -246,3 +251,55 @@ Duration: {email_action.estimated_duration}
             "total_failed": failed,
             "results": results
         }
+
+    @staticmethod
+    def _get_location_section(email_action) -> str:
+        """Generate HTML location section with Google Maps link"""
+        if not hasattr(email_action, 'user_coordinates') or not email_action.user_coordinates:
+            return ""
+
+        lat = email_action.user_coordinates.get('lat') or email_action.user_coordinates.get('latitude')
+        lng = email_action.user_coordinates.get('lng') or email_action.user_coordinates.get('longitude')
+
+        if not lat or not lng:
+            return ""
+
+        maps_link = f"https://maps.google.com/maps?q={lat},{lng}"
+
+        return f"""
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ffc107;">
+                        <h3 style="color: #856404; margin-top: 0; font-size: 16px;">📍 INCIDENT LOCATION</h3>
+                        <p style="margin: 5px 0; color: #856404;">
+                            <strong>Coordinates:</strong> {lat}, {lng}
+                        </p>
+                        <p style="margin: 10px 0;">
+                            <a href="{maps_link}"
+                               style="background-color: #4285f4; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block;"
+                               target="_blank">
+                                🗺️ Open in Google Maps
+                            </a>
+                        </p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #6c757d;">
+                            Click the link above to navigate to the exact location
+                        </p>
+                    </div>
+        """
+
+    @staticmethod
+    def _get_location_text(email_action) -> str:
+        """Generate plain text location section with Google Maps link"""
+        if not hasattr(email_action, 'user_coordinates') or not email_action.user_coordinates:
+            return ""
+
+        lat = email_action.user_coordinates.get('lat') or email_action.user_coordinates.get('latitude')
+        lng = email_action.user_coordinates.get('lng') or email_action.user_coordinates.get('longitude')
+
+        if not lat or not lng:
+            return ""
+
+        maps_link = f"https://maps.google.com/maps?q={lat},{lng}"
+
+        return f"""📍 INCIDENT LOCATION:
+Coordinates: {lat}, {lng}
+Google Maps: {maps_link}
+"""

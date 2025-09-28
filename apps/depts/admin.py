@@ -86,7 +86,7 @@ class LocationInline(admin.TabularInline):
 class DepartmentEntityInline(admin.TabularInline):
     model = DepartmentEntity
     extra = 0
-    fields = ('name', 'type', 'city', 'phone', 'capacity', 'is_active')
+    fields = ('name', 'type', 'city', 'phone', 'email', 'capacity', 'is_active')
     readonly_fields = ('name', 'type', 'city', 'phone', 'capacity', 'is_active')
 
 
@@ -195,7 +195,7 @@ class DepartmentAdmin(admin.ModelAdmin):
 
 @admin.register(DepartmentEntity)
 class DepartmentEntityAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type', 'department', 'city', 'capacity', 'is_active')
+    list_display = ('name', 'type', 'department', 'city', 'phone', 'email', 'capacity', 'is_active')
     list_filter = ('type', 'department__category', 'city__province', 'is_active')
     search_fields = ('name', 'department__name', 'city__name')
     autocomplete_fields = ('department', 'city', 'location')
@@ -206,7 +206,7 @@ class DepartmentEntityAdmin(admin.ModelAdmin):
             'fields': ('name', 'type', 'department', 'city', 'location')
         }),
         ('Contact & Services', {
-            'fields': ('phone', 'services')
+            'fields': ('phone', 'email', 'services')
         }),
         ('Capacity', {
             'fields': ('capacity',)
