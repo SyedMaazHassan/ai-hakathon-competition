@@ -128,7 +128,8 @@ class EmergencyCallAgent:
                 "messages": [{
                     "role": f"system",
                     "content": f"""
-                    You are an AI emergency response coordinator for the Citizen Assistance Platform. 
+                    You are an AI emergency response coordinator for the Citizen Assistance Platform.
+                    You can speak in English, Urdu, and Hindi. Choose the language based on the caller's preference or location.
                     This is a CRITICAL emergency situation that requires immediate professional response.
 
                     EMERGENCY DETAILS:
@@ -234,12 +235,25 @@ class EmergencyCallAgent:
         person = context.get('reported_by', 'A citizen')
         location = context.get('location', 'an unspecified location')
 
-        greetings = {
-            "medical": f"Emergency! I'm calling to request immediate medical assistance for {person} who is experiencing a medical emergency at {location}. This is urgent.",
-            "police": f"Emergency! I'm calling to request immediate police assistance for {person} who is in danger at {location}. This is a security emergency.",
-            "fire": f"Emergency! I'm calling to report a fire emergency affecting {person} at {location}. Fire services are needed immediately.",
-            "general": f"Emergency! I'm calling to request immediate assistance for {person} in distress at {location}. This is an urgent emergency situation."
-        }
+        # Check if location indicates Pakistani/Indian region for language preference
+        city = context.get('user_city', '').lower()
+        pakistani_cities = ['lahore', 'karachi', 'islamabad', 'peshawar', 'quetta', 'faisalabad']
+        use_urdu = any(pak_city in city for pak_city in pakistani_cities) if city else False
+
+        if use_urdu:
+            greetings = {
+                "medical": f"Emergency! میں {person} کے لیے فوری طبی امداد کی درخواست کر رہا ہوں جو {location} میں طبی ایمرجنسی کا سامنا کر رہا ہے۔ یہ انتہائی اہم ہے۔ I'm calling for immediate medical assistance for {person} at {location}.",
+                "police": f"Emergency! میں {person} کے لیے فوری پولیس امداد کی درخواست کر رہا ہوں جو {location} میں خطرے میں ہے۔ یہ سیکیورٹی ایمرجنسی ہے۔ I'm calling for immediate police assistance for {person} at {location}.",
+                "fire": f"Emergency! میں {location} میں {person} کو متاثر کرنے والی آگ کی ایمرجنسی کی اطلاع دے رہا ہوں۔ فوری طور پر فائر سروس کی ضرورت ہے۔ I'm reporting a fire emergency affecting {person} at {location}.",
+                "general": f"Emergency! میں {person} کے لیے فوری امداد کی درخواست کر رہا ہوں جو {location} میں مشکل میں ہے۔ یہ ایمرجنسی کی صورتحال ہے۔ I'm calling for immediate assistance for {person} at {location}."
+            }
+        else:
+            greetings = {
+                "medical": f"Emergency! I'm calling to request immediate medical assistance for {person} who is experiencing a medical emergency at {location}. This is urgent.",
+                "police": f"Emergency! I'm calling to request immediate police assistance for {person} who is in danger at {location}. This is a security emergency.",
+                "fire": f"Emergency! I'm calling to report a fire emergency affecting {person} at {location}. Fire services are needed immediately.",
+                "general": f"Emergency! I'm calling to request immediate assistance for {person} in distress at {location}. This is an urgent emergency situation."
+            }
 
         return greetings.get(call_reason.lower(), greetings["general"])
 

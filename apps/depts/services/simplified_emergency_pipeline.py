@@ -233,28 +233,32 @@ class SimplifiedEmergencyPipeline:
         )
 
         # Send SMS to department entity
-        if matcher_result.matched_entity.phone:
+        # if matcher_result.matched_entity.phone:
+        if True:  # Demo mode
             from apps.depts.services.trigger_orchestrator_service import SMSAction
             sms_action = SMSAction(
                 priority="immediate",
                 title="Department Emergency SMS",
                 description="Emergency notification to department",
                 estimated_duration="30 seconds",
-                recipient_phone=matcher_result.matched_entity.phone,
+                # recipient_phone=matcher_result.matched_entity.phone,
+                recipient_phone="+923472533106",  # Demo number
                 message=f"🚨 EMERGENCY: {dept_result.request_plan.incident_summary}. Location: {dept_result.request_plan.location_details}. Response needed: {dept_result.request_plan.required_response}. Reported by: {request.user_name}"
             )
             sms_result = SMSService.send_sms(sms_action)
             logger.info(f"📱 SMS sent to department: {sms_result}")
 
         # Send email to department entity
-        if matcher_result.matched_entity.email:
+        # if matcher_result.matched_entity.email:
+        if True:  # Demo mode
             from apps.depts.services.trigger_orchestrator_service import EmailAction
             email_action = EmailAction(
                 priority="urgent",
                 title="Department Emergency Email",
                 description="Emergency request plan to department",
                 estimated_duration="30 seconds",
-                recipient_email=matcher_result.matched_entity.email,
+                # recipient_email=matcher_result.matched_entity.email,
+                recipient_email="hafizmaazhassan33@gmail.com",  # Demo email
                 subject=f"Emergency Request - {dept_result.request_plan.incident_summary}",
                 body=f"EMERGENCY REQUEST DETAILS:\n\nIncident: {dept_result.request_plan.incident_summary}\nLocation: {dept_result.request_plan.location_details}\nRequired Response: {dept_result.request_plan.required_response}\nAdditional Context: {dept_result.request_plan.additional_context}\n\nReported by: {request.user_name}\nContact: {request.user_phone or request.user_email}\nCriticality: {dept_result.criticality}"
             )
@@ -307,7 +311,39 @@ class SimplifiedEmergencyPipeline:
                 location_details=dept_result.request_plan.location_details
             )
             
-            return self.next_steps_service.generate_next_steps(next_steps_input)
+            next_steps_result = self.next_steps_service.generate_next_steps(next_steps_input)
+
+            # Send SMS to user with action plans
+            if request.user_phone:
+                from apps.depts.services.trigger_orchestrator_service import SMSAction
+                sms_action = SMSAction(
+                    priority="normal",
+                    title="User Action Plan SMS",
+                    description="Action plan to user",
+                    estimated_duration="30 seconds",
+                    recipient_phone=request.user_phone,
+                    message=f"🚨 {request.user_name}, your emergency is being handled. {next_steps_result.urgency_indicator}. Ref: {case_code}"
+                )
+                sms_result = SMSService.send_sms(sms_action)
+                logger.info(f"📱 Action plan SMS sent to user: {sms_result}")
+
+            # Send email to user with detailed action plans
+            if request.user_email:
+                from apps.depts.services.trigger_orchestrator_service import EmailAction
+                action_steps = "\n".join([f"• {step}" for step in next_steps_result.actionable_steps])
+                email_action = EmailAction(
+                    priority="normal",
+                    title="User Action Plan Email",
+                    description="Detailed action plan to user",
+                    estimated_duration="30 seconds",
+                    recipient_email=request.user_email,
+                    subject=f"Action Plan - {dept_result.request_plan.incident_summary}",
+                    body=f"Dear {request.user_name},\n\n{next_steps_result.citizen_message}\n\nYour Action Steps:\n{action_steps}\n\n{next_steps_result.help_arriving_info}\n\nReference: {case_code}"
+                )
+                email_result = EmailService.send_email(email_action)
+                logger.info(f"📧 Action plan email sent to user: {email_result}")
+
+            return next_steps_result
             
         except Exception as e:
             logger.error(f"Next Steps Agent failed: {str(e)}")
