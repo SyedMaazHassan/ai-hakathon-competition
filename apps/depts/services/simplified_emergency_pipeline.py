@@ -26,6 +26,7 @@ from apps.depts.services.actions.action_executor import ActionExecutor
 from apps.ai_agents.internal_agents.next_steps_agent import NextStepsAgentService, NextStepsInput
 from apps.depts.services.database_service import EmergencyDatabaseService
 from apps.depts.services.actions.vapi_call_agent import EmergencyCallAgent
+from apps.depts.services.trigger_orchestrator_service import EmailService, SMSService
 
 # Import models
 from apps.depts.models import CitizenRequest
@@ -220,7 +221,6 @@ class SimplifiedEmergencyPipeline:
             phone_number="+923472533106",
             call_reason=dept_result.request_plan.incident_summary,
             additional_context={
-                "longi"
                 "user_city": request.user_city,
                 "user_coordinates": request.user_coordinates,
                 "request_plan": dept_result.request_plan.model_dump_json(),
@@ -231,6 +231,35 @@ class SimplifiedEmergencyPipeline:
                 "additional_notes": dept_result.request_plan.additional_context
             }
         )
+
+        # Send SMS notification
+        if request.user_phone:
+            from apps.depts.services.trigger_orchestrator_service import SMSAction
+            sms_action = SMSAction(
+                priority="immediate",
+                title="Emergency SMS",
+                description="Emergency notification",
+                estimated_duration="30 seconds",
+                recipient_phone=request.user_phone,
+                message=f"🚨 Emergency logged: {dept_result.request_plan.incident_summary}. Help is on the way. Ref: {matcher_result.matched_entity.id[:8] if matcher_result.matched_entity else 'N/A'}"
+            )
+            sms_result = SMSService.send_sms(sms_action)
+            logger.info(f"📱 SMS sent to user: {sms_result}")
+
+        # Send email notification
+        if request.user_email:
+            from apps.depts.services.trigger_orchestrator_service import EmailAction
+            email_action = EmailAction(
+                priority="urgent",
+                title="Emergency Email",
+                description="Emergency details",
+                estimated_duration="30 seconds",
+                recipient_email=request.user_email,
+                subject=f"Emergency Response - {dept_result.request_plan.incident_summary}",
+                body=f"Dear {request.user_name},\n\nYour emergency request has been processed:\n\nIncident: {dept_result.request_plan.incident_summary}\nLocation: {dept_result.request_plan.location_details}\nResponse: {dept_result.request_plan.required_response}\n\nEmergency services have been notified.\nReference: {matcher_result.matched_entity.id[:8] if matcher_result.matched_entity else 'N/A'}"
+            )
+            email_result = EmailService.send_email(email_action)
+            logger.info(f"📧 Email sent to user: {email_result}")
         
         trigger_input = TriggerOrchestratorInput(
             department_output=dept_result,
