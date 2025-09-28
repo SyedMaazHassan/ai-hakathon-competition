@@ -59,8 +59,7 @@ class ActionExecutor:
                 return self.sms_service.execute_sms_action(action)
 
             elif action.action_type == TriggerActionType.VOICE_CALL:
-                # Initialize the emergency call agent
-                print("Already called")
+                return self.voice_service.execute_voice_action(action)
 
             # Calendar and Maps actions removed to focus on core emergency services
 

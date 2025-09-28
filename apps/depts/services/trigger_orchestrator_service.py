@@ -18,7 +18,6 @@ from apps.depts.agents.department_orchestrator_agent.pydantic_models import Depa
 from apps.depts.services.matcher_service import EntityInfo
 from apps.depts.agents.router_agent.pydantic_models import RouterDecision
 from apps.depts.choices import ActionType, UrgencyLevel, CallStatus, AppointmentStatus
-from apps.depts.services.actions.vapi_call_agent import EmergencyCallAgent
 
 # =============================================================================
 # TRIGGER-SPECIFIC ACTION TYPES (synced with database)
@@ -152,21 +151,7 @@ class TriggerOrchestratorService:
                     max_duration_minutes=3
                 ))
 
-                call_agent = EmergencyCallAgent()
-
-                # Make an emergency call
-                call_result = call_agent.make_emergency_call(
-                    phone_number=entity_info.phone,
-                    call_reason=department_output.request_plan.incident_summary,
-                    additional_context={
-                        "case_code": department_output.request_plan.case_code,
-                        "emergency_type": department_output.request_plan.incident_summary,
-                        "location": department_output.request_plan.location_details,
-                        "urgency_level": department_output.criticality,
-                        "additional_notes": department_output.request_plan.additional_context
-                    }
-                )
-                print(call_result)
+# Voice call action will be handled by ActionExecutor -> VoiceActionService -> EmergencyCallAgent
 
 
             # 2. Emergency SMS to user
@@ -265,22 +250,7 @@ class TriggerOrchestratorService:
                 ))
 
 
-                call_agent = EmergencyCallAgent()
-
-                # Make an emergency call
-                call_result = call_agent.make_emergency_call(
-                    phone_number=entity_info.phone,
-                    call_reason=department_output.request_plan.incident_summary,
-                    additional_context={
-                        "case_code": department_output.request_plan.case_code,
-                        "emergency_type": department_output.request_plan.incident_summary,
-                        "location": department_output.request_plan.location_details,
-                        "urgency_level": department_output.criticality,
-                        "additional_notes": department_output.request_plan.additional_context
-                    }
-                )
-
-                print(call_result)
+# Voice call action will be handled by ActionExecutor -> VoiceActionService -> EmergencyCallAgent
 
 
             # 3. User alert email with action plan (HIGH level)

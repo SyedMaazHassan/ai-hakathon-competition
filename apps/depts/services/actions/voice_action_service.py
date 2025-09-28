@@ -1,5 +1,5 @@
 """
-Voice Action Service - VAPI integration template
+Voice Action Service - VAPI integration with EmergencyCallAgent
 Plug & play with TriggerOrchestrator VoiceCallAction
 """
 import os
@@ -16,6 +16,7 @@ import json
 from typing import Dict, List, Any
 from django.conf import settings
 import logging
+from .vapi_call_agent import EmergencyCallAgent
 
 logger = logging.getLogger(__name__)
 
@@ -26,14 +27,12 @@ class VoiceActionService:
     """
 
     def __init__(self):
-        # VAPI configuration - add to your .env file
-        self.vapi_api_key = getattr(settings, 'VAPI_API_KEY', None)
-        self.vapi_base_url = "https://api.vapi.ai"
-        self.vapi_phone_number = getattr(settings, 'VAPI_PHONE_NUMBER', None)
+        # Use your functional EmergencyCallAgent
+        self.emergency_agent = EmergencyCallAgent()
 
     def execute_voice_action(self, voice_action) -> Dict[str, Any]:
         """
-        Execute voice call action from TriggerOrchestrator
+        Execute voice call action using functional EmergencyCallAgent
 
         Args:
             voice_action: VoiceCallAction object
@@ -42,43 +41,35 @@ class VoiceActionService:
             Dict with execution result
         """
         try:
-            if not self.vapi_api_key:
-                # Fallback to mock for testing
-                return self._mock_voice_call(voice_action)
+            # Extract call reason from the script or title
+            call_reason = self._determine_call_reason(voice_action.call_script)
 
-            # VAPI call configuration
-            call_config = {
-                "phoneNumber": voice_action.recipient_phone,
-                "assistantId": self._get_emergency_assistant_id(),
-                "metadata": {
-                    "priority": voice_action.priority.value,
-                    "title": voice_action.title,
-                    "script": voice_action.call_script,
-                    "max_duration": voice_action.max_duration_minutes
-                }
+            # Build context from the voice action
+            additional_context = {
+                "case_code": f"VA-{hash(voice_action.title) % 10000:04d}",
+                "emergency_type": call_reason,
+                "location": "Emergency location",  # Could be extracted from script
+                "urgency_level": voice_action.priority.value.upper(),
+                "additional_notes": voice_action.call_script
             }
 
-            # Make VAPI API call
-            response = requests.post(
-                f"{self.vapi_base_url}/call",
-                headers={
-                    "Authorization": f"Bearer {self.vapi_api_key}",
-                    "Content-Type": "application/json"
-                },
-                json=call_config,
-                timeout=30
+            # Make the emergency call using your functional agent
+            result = self.emergency_agent.make_emergency_call(
+                phone_number=voice_action.recipient_phone,
+                call_reason=call_reason,
+                additional_context=additional_context
             )
 
-            if response.status_code == 200:
-                call_data = response.json()
+            if result["success"]:
                 return {
                     "success": True,
                     "status": "initiated",
                     "action_type": voice_action.action_type.value,
                     "recipient": voice_action.recipient_phone,
-                    "call_id": call_data.get("id"),
+                    "call_id": result.get("call_id"),
                     "estimated_duration": f"{voice_action.max_duration_minutes} minutes",
-                    "script_preview": voice_action.call_script[:100] + "..."
+                    "script_preview": voice_action.call_script[:100] + "...",
+                    "service": "EmergencyCallAgent"
                 }
             else:
                 return {
@@ -86,7 +77,7 @@ class VoiceActionService:
                     "status": "failed",
                     "action_type": voice_action.action_type.value,
                     "recipient": voice_action.recipient_phone,
-                    "error": f"VAPI error: {response.status_code} - {response.text}"
+                    "error": result.get("error", "Unknown error")
                 }
 
         except Exception as e:
@@ -98,6 +89,19 @@ class VoiceActionService:
                 "recipient": voice_action.recipient_phone,
                 "error": str(e)
             }
+
+    def _determine_call_reason(self, call_script: str) -> str:
+        """Determine emergency type from call script"""
+        script_lower = call_script.lower()
+
+        if any(word in script_lower for word in ["fire", "burning", "smoke", "flame"]):
+            return "fire"
+        elif any(word in script_lower for word in ["medical", "heart", "injury", "accident", "hospital"]):
+            return "medical"
+        elif any(word in script_lower for word in ["police", "crime", "robbery", "theft", "danger"]):
+            return "police"
+        else:
+            return "general"
 
     def _mock_voice_call(self, voice_action) -> Dict[str, Any]:
         """
@@ -127,42 +131,11 @@ class VoiceActionService:
 
     def get_call_status(self, call_id: str) -> Dict[str, Any]:
         """
-        Check status of ongoing call
+        Check status of ongoing call using EmergencyCallAgent
         """
         try:
-            if not self.vapi_api_key or call_id.startswith("mock_"):
-                return {
-                    "success": True,
-                    "call_id": call_id,
-                    "status": "mock_completed",
-                    "duration": "2 minutes",
-                    "note": "Mock call status"
-                }
-
-            response = requests.get(
-                f"{self.vapi_base_url}/call/{call_id}",
-                headers={
-                    "Authorization": f"Bearer {self.vapi_api_key}"
-                },
-                timeout=15
-            )
-
-            if response.status_code == 200:
-                call_data = response.json()
-                return {
-                    "success": True,
-                    "call_id": call_id,
-                    "status": call_data.get("status"),
-                    "duration": call_data.get("duration"),
-                    "started_at": call_data.get("startedAt"),
-                    "ended_at": call_data.get("endedAt")
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": f"Failed to get call status: {response.status_code}"
-                }
-
+            # Use your functional agent's get_call_status method
+            return self.emergency_agent.get_call_status(call_id)
         except Exception as e:
             return {
                 "success": False,

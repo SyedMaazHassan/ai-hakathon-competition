@@ -29,6 +29,7 @@ class EmergencyCallAgent:
             self._create_emergency_structured_output()
 
             # Create or get emergency assistant
+            print(f"Creating emergency assistant for {additional_context}")
             assistant_id = self._create_emergency_assistant(call_reason, additional_context or {})
 
             # Make the call
@@ -118,14 +119,14 @@ class EmergencyCallAgent:
         context_info = self._build_context_prompt(context)
 
         assistant = self.vapi.assistants.create(
-            name=f"Emergency Response Agent - {call_reason}",
+            name=f"Emergency Response Agent",
             first_message=self._get_emergency_greeting(call_reason, context),
             model={
                 "provider": "openai",
                 "model": "gpt-4o",
                 "temperature": 0.3,
                 "messages": [{
-                    "role": "system",
+                    "role": f"system",
                     "content": f"""
                     You are an AI emergency response coordinator for the Citizen Assistance Platform. 
                     This is a CRITICAL emergency situation that requires immediate professional response.

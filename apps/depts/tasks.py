@@ -9,7 +9,6 @@ from call_agent import EmergencyCallAgent
 
 logger = logging.getLogger(__name__)
 
-
 @shared_task(bind=True, max_retries=3)
 def process_emergency_request_task(self, request_data):
     """
@@ -21,7 +20,19 @@ def process_emergency_request_task(self, request_data):
 
         pipeline = SimplifiedEmergencyPipeline()
 
-        emergency_request = EmergencyRequest(**request_data)
+   
+        emergency_request = EmergencyRequest(
+            request_text=request_data.get('request_text'),
+            user_phone=request_data.get('user_phone'),
+            user_email=request_data.get('user_email'),
+            user_city=request_data.get('location'),
+            user_coordinates={
+                "longitude": request_data.get('longitude'),
+                "latitude": request_data.get('latitude')
+            },
+            user_id=request_data.get('user_id'),
+            user_name=request_data.get('user_name')
+        )
         logger.info(f"Emergency request: {emergency_request}")
         result = pipeline.process_emergency_request(emergency_request)
 

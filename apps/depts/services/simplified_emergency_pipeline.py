@@ -25,6 +25,7 @@ from apps.depts.services.trigger_orchestrator_service import TriggerOrchestrator
 from apps.depts.services.actions.action_executor import ActionExecutor
 from apps.ai_agents.internal_agents.next_steps_agent import NextStepsAgentService, NextStepsInput
 from apps.depts.services.database_service import EmergencyDatabaseService
+from apps.depts.services.actions.vapi_call_agent import EmergencyCallAgent
 
 # Import models
 from apps.depts.models import CitizenRequest
@@ -210,6 +211,26 @@ class SimplifiedEmergencyPipeline:
     def _process_trigger_step(self, request: EmergencyRequest, router_result, matcher_result, dept_result):
         """Process trigger orchestrator step"""
         logger.info("⚡ Step 4: Mapping to intelligent actions...")
+
+
+        # Make an emergency call
+        call_agent = EmergencyCallAgent()
+        call_result = call_agent.make_emergency_call(
+            # phone_number=matcher_result.matched_entity.phone,
+            phone_number="+923472533106",
+            call_reason=dept_result.request_plan.incident_summary,
+            additional_context={
+                "longi"
+                "user_city": request.user_city,
+                "user_coordinates": request.user_coordinates,
+                "request_plan": dept_result.request_plan.model_dump_json(),
+                "emergency_type": dept_result.request_plan.incident_summary,
+                "location": dept_result.request_plan.location_details,
+                "reported_by": request.user_name,
+                "urgency_level": dept_result.criticality,
+                "additional_notes": dept_result.request_plan.additional_context
+            }
+        )
         
         trigger_input = TriggerOrchestratorInput(
             department_output=dept_result,
